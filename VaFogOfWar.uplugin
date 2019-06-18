@@ -1,0 +1,32 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"EngineVersion" : "4.22.0",
+	"FriendlyName": "VaFogOfWar",
+	"Description": "VaFogOfWar",
+	"Category": "Rendering",
+	"CreatedBy": "Vladimir Alyamkin",
+	"CreatedByURL": "https://alyamkin.com",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "VaFogOfWar",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms": [
+				"Win32",
+				"Win64",
+				"Mac",
+				"IOS",
+				"Android",
+				"Linux"
+			]
+		}
+	]
+}
