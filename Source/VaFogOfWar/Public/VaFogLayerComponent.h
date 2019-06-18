@@ -6,7 +6,7 @@
 
 #include "VaFogLayerComponent.generated.h"
 
-UCLASS()
+UCLASS(ClassGroup = (FogOfWar), editinlinenew, meta = (BlueprintSpawnableComponent))
 class VAFOGOFWAR_API UVaFogLayerComponent : public UActorComponent
 {
 	GENERATED_UCLASS_BODY()
