@@ -4,11 +4,7 @@
 
 #include "VaFogDefines.h"
 
-#define LOCTEXT_NAMESPACE "FVaFogOfWarModule"
-
 UVaFogLayerComponent::UVaFogLayerComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 }
-
-#undef LOCTEXT_NAMESPACE
