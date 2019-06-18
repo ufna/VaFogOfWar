@@ -9,7 +9,6 @@
 UVaFogController::UVaFogController(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	// UE_LOG(LogVaFog, Warning, TEXT("[%s] TODO"), *VA_FUNC_LINE);
 }
 
 #undef LOCTEXT_NAMESPACE

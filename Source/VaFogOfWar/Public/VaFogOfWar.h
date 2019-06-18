@@ -6,6 +6,7 @@
 #include "Modules/ModuleManager.h"
 
 class UVaFogSettings;
+class UVaFogController;
 
 /**
  * VaFogOfWar Module
@@ -41,7 +42,13 @@ public:
 	/** Getter for internal settings object to support runtime configuration changes */
 	UVaFogSettings* GetSettings() const;
 
+	/** Get global fog controller */
+	UVaFogController* GetFogController(UWorld* World) const;
+
 private:
 	/** Module settings */
 	UVaFogSettings* ModuleSettings;
+
+	/** Fog controllers (one for each World we have) */
+	TMap<UWorld*, UVaFogController*> FogControllers;
 };

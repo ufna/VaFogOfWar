@@ -2,10 +2,12 @@
 
 #include "VaFogOfWar.h"
 
+#include "VaFogController.h"
 #include "VaFogDefines.h"
 #include "VaFogSettings.h"
 
 #include "Developer/Settings/Public/ISettingsModule.h"
+#include "Engine/World.h"
 
 #define LOCTEXT_NAMESPACE "FVaFogOfWarModule"
 
@@ -23,7 +25,22 @@ void FVaFogOfWarModule::StartupModule()
 			ModuleSettings);
 	}
 
-	UE_LOG(LogVaFog, Log, TEXT("%s: VaFogOfWar module started"), *VA_FUNC_LINE);
+	FWorldDelegates::OnWorldCleanup.AddLambda([this](UWorld* World, bool bSessionEnded, bool bCleanupResources) {
+		FogControllers.Remove(World);
+
+		UE_LOG(LogVaFog, Log, TEXT("[%s] Fog Controller is removed for: %s"), *VA_FUNC_LINE, *World->GetName());
+	});
+
+	FWorldDelegates::OnPostWorldInitialization.AddLambda([this](UWorld* World, const UWorld::InitializationValues IVS) {
+		auto FogController = NewObject<UVaFogController>(GetTransientPackage());
+		FogController->SetFlags(RF_Standalone);
+
+		FogControllers.Add(World, FogController);
+
+		UE_LOG(LogVaFog, Log, TEXT("[%s] Fog Controller is created for: %s"), *VA_FUNC_LINE, *World->GetName());
+	});
+
+	UE_LOG(LogVaFog, Log, TEXT("[%s] VaFogOfWar module started"), *VA_FUNC_LINE);
 }
 
 void FVaFogOfWarModule::ShutdownModule()
@@ -48,6 +65,11 @@ UVaFogSettings* FVaFogOfWarModule::GetSettings() const
 {
 	check(ModuleSettings);
 	return ModuleSettings;
+}
+
+UVaFogController* FVaFogOfWarModule::GetFogController(UWorld* World) const
+{
+	return FogControllers.FindChecked(World);
 }
 
 #undef LOCTEXT_NAMESPACE
