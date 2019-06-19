@@ -14,6 +14,10 @@ class VAFOGOFWAR_API UVaFogAgentComponent : public UActorComponent
 	GENERATED_UCLASS_BODY()
 
 public:
+	virtual void InitializeComponent() override;
+	virtual void UninitializeComponent() override;
+
+public:
 	/**  */
 	UPROPERTY(EditDefaultsOnly)
 	EVaFogLayerChannel TargetChannel;

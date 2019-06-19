@@ -12,5 +12,8 @@ class VAFOGOFWAR_API AVaFogBoundsVolume : public AVolume
 {
 	GENERATED_UCLASS_BODY()
 
-public:
+	//~ Begin AActor Interface
+	virtual void PostRegisterAllComponents() override;
+	virtual void PostUnregisterAllComponents() override;
+	//~ End AActor Interface
 };

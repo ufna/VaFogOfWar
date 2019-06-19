@@ -25,7 +25,7 @@ void FVaFogOfWarModule::StartupModule()
 			ModuleSettings);
 	}
 
-	FWorldDelegates::OnWorldCleanup.AddLambda([this](UWorld* World, bool bSessionEnded, bool bCleanupResources) {
+	FWorldDelegates::OnPostWorldCleanup.AddLambda([this](UWorld* World, bool bSessionEnded, bool bCleanupResources) {
 		FogControllers.Remove(World);
 
 		UE_LOG(LogVaFog, Log, TEXT("[%s] Fog Controller is removed for: %s"), *VA_FUNC_LINE, *World->GetName());
@@ -59,6 +59,8 @@ void FVaFogOfWarModule::ShutdownModule()
 	{
 		ModuleSettings = nullptr;
 	}
+
+	FogControllers.Empty();
 }
 
 UVaFogSettings* FVaFogOfWarModule::GetSettings() const

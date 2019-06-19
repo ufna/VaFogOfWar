@@ -11,10 +11,20 @@
 class UTextureRenderTarget2D;
 class UMaterialInterface;
 
+class UVaFogAgentComponent;
+
 UCLASS(ClassGroup = (VAFogOfWar), editinlinenew, meta = (BlueprintSpawnableComponent))
 class VAFOGOFWAR_API UVaFogLayerComponent : public UActorComponent
 {
 	GENERATED_UCLASS_BODY()
+
+public:
+	virtual void InitializeComponent() override;
+	virtual void UninitializeComponent() override;
+	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+	void AddFogAgent(UVaFogAgentComponent* InFogAgent);
+	void RemoveFogAgent(UVaFogAgentComponent* InFogAgent);
 
 public:
 	/**  */
@@ -32,4 +42,9 @@ public:
 	/**  */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Fog of War")
 	UMaterialInterface* BlurMaterial;
+
+protected:
+	/** Registered fog agents for layer */
+	UPROPERTY()
+	TArray<UVaFogAgentComponent*> FogAgents;
 };
