@@ -37,10 +37,8 @@ public:
 
 private:
 	/** Currently only one fog volume at time is supported */
-	UPROPERTY()
-	AVaFogBoundsVolume* FogVolume;
+	TWeakObjectPtr<AVaFogBoundsVolume> FogVolume;
 
 	/** Registered fog layers */
-	UPROPERTY()
-	TArray<UVaFogLayerComponent*> FogLayers;
+	TArray<TWeakObjectPtr<UVaFogLayerComponent>> FogLayers;
 };

@@ -43,8 +43,6 @@ void UVaFogController::OnFogBoundsRemoved(AVaFogBoundsVolume* InFogVolume)
 		UE_LOG(LogVaFog, Error, TEXT("[%s] Current fog volume is different from we're trying to remove: Current: %s, Removing: %s"),
 			*VA_FUNC_LINE, (FogVolume != nullptr) ? *FogVolume->GetName() : TEXT("invalid"), *InFogVolume->GetName());
 	}
-
-
 }
 
 void UVaFogController::OnFogLayerAdded(UVaFogLayerComponent* InFogLayer)
@@ -91,14 +89,14 @@ void UVaFogController::OnFogAgentRemoved(UVaFogAgentComponent* InFogAgent)
 
 AVaFogBoundsVolume* UVaFogController::GetFogVolume() const
 {
-	return FogVolume;
+	return (FogVolume.IsValid()) ? FogVolume.Get() : nullptr;
 }
 
 UVaFogLayerComponent* UVaFogController::GetFogLayer(EVaFogLayerChannel LayerChannel) const
 {
-	auto FogLayerPtr = FogLayers.FindByPredicate([LayerChannel](const UVaFogLayerComponent* InLayer) {
-		return (InLayer) ? (InLayer->LayerChannel == LayerChannel) : false;
+	auto FogLayerPtr = FogLayers.FindByPredicate([LayerChannel](const TWeakObjectPtr<UVaFogLayerComponent> InLayer) {
+		return (InLayer.IsValid()) ? (InLayer.Get()->LayerChannel == LayerChannel) : false;
 	});
 
-	return (FogLayerPtr) ? (*FogLayerPtr) : nullptr;
+	return (FogLayerPtr && (*FogLayerPtr).IsValid()) ? ((*FogLayerPtr).Get()) : nullptr;
 }
