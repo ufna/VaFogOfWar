@@ -30,6 +30,8 @@ public:
 	void OnFogAgentAdded(UVaFogAgentComponent* InFogAgent);
 	void OnFogAgentRemoved(UVaFogAgentComponent* InFogAgent);
 
+	AVaFogBoundsVolume* GetFogVolume() const;
+
 	/** Get fog layer by its channel */
 	UVaFogLayerComponent* GetFogLayer(EVaFogLayerChannel LayerChannel) const;
 

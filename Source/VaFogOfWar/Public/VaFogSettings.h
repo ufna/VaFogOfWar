@@ -9,6 +9,17 @@ class VAFOGOFWAR_API UVaFogSettings : public UObject
 {
 	GENERATED_UCLASS_BODY()
 
+	virtual void PostInitProperties() override;
+
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+
+private:
+	void SanatizeFogLayerResolution();
+
 public:
-	/** @TODO */
+	/** Must be power of two */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VA Fog of War Settings")
+	int32 FogLayerResolution;
 };

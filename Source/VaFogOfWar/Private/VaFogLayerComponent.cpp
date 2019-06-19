@@ -2,6 +2,8 @@
 
 #include "VaFogLayerComponent.h"
 
+#include "VaFogAgentComponent.h"
+#include "VaFogBoundsVolume.h"
 #include "VaFogController.h"
 #include "VaFogDefines.h"
 
@@ -38,6 +40,13 @@ void UVaFogLayerComponent::UninitializeComponent()
 void UVaFogLayerComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	auto FogVolume = UVaFogController::Get(this)->GetFogVolume();
+
+	for (auto FogAgent : FogAgents)
+	{
+		// @TODO
+	}
 }
 
 void UVaFogLayerComponent::AddFogAgent(UVaFogAgentComponent* FogAgent)

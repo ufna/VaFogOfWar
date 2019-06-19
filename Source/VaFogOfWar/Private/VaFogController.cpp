@@ -87,6 +87,11 @@ void UVaFogController::OnFogAgentRemoved(UVaFogAgentComponent* InFogAgent)
 	}
 }
 
+AVaFogBoundsVolume* UVaFogController::GetFogVolume() const
+{
+	return FogVolume;
+}
+
 UVaFogLayerComponent* UVaFogController::GetFogLayer(EVaFogLayerChannel LayerChannel) const
 {
 	auto FogLayerPtr = FogLayers.FindByPredicate([LayerChannel](const UVaFogLayerComponent* InLayer) {

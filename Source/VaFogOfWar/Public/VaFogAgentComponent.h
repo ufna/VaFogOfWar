@@ -18,7 +18,11 @@ public:
 	virtual void UninitializeComponent() override;
 
 public:
-	/**  */
-	UPROPERTY(EditDefaultsOnly)
+	/** Fog layer we're scouting by the agent */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	EVaFogLayerChannel TargetChannel;
+
+	/** Agent vision radius in cm */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	int32 VisionRadius;
 };
