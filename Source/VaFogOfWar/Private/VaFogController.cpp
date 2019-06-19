@@ -43,6 +43,8 @@ void UVaFogController::OnFogBoundsRemoved(AVaFogBoundsVolume* InFogVolume)
 		UE_LOG(LogVaFog, Error, TEXT("[%s] Current fog volume is different from we're trying to remove: Current: %s, Removing: %s"),
 			*VA_FUNC_LINE, (FogVolume != nullptr) ? *FogVolume->GetName() : TEXT("invalid"), *InFogVolume->GetName());
 	}
+
+
 }
 
 void UVaFogController::OnFogLayerAdded(UVaFogLayerComponent* InFogLayer)

@@ -43,15 +43,11 @@ void AVaFogBoundsVolume::PostRegisterAllComponents()
 	UVaFogController::Get(this)->OnFogBoundsAdded(this);
 }
 
-void AVaFogBoundsVolume::PostUnregisterAllComponents()
+void AVaFogBoundsVolume::Destroyed()
 {
-	Super::PostUnregisterAllComponents();
+	Super::Destroyed();
 
-	// World can be cleanuped already at this point
-	if (UVaFogController::Get(this, EGetWorldErrorMode::LogAndReturnNull))
-	{
-		UVaFogController::Get(this)->OnFogBoundsRemoved(this);
-	}
+	UVaFogController::Get(this)->OnFogBoundsRemoved(this);
 }
 
 #if WITH_EDITOR

@@ -34,7 +34,10 @@ void UVaFogLayerComponent::UninitializeComponent()
 {
 	Super::UninitializeComponent();
 
-	UVaFogController::Get(this)->OnFogLayerRemoved(this);
+	if (UVaFogController::Get(this, EGetWorldErrorMode::LogAndReturnNull))
+	{
+		UVaFogController::Get(this)->OnFogLayerRemoved(this);
+	}
 }
 
 void UVaFogLayerComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)

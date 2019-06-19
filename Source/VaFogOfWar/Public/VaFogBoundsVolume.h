@@ -14,7 +14,7 @@ class VAFOGOFWAR_API AVaFogBoundsVolume : public AVolume
 
 	//~ Begin AActor Interface
 	virtual void PostRegisterAllComponents() override;
-	virtual void PostUnregisterAllComponents() override;
+	virtual void Destroyed() override;
 	//~ End AActor Interface
 
 #if WITH_EDITOR

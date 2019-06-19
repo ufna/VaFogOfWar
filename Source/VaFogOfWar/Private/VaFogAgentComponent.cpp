@@ -25,5 +25,8 @@ void UVaFogAgentComponent::UninitializeComponent()
 {
 	Super::UninitializeComponent();
 
-	UVaFogController::Get(this)->OnFogAgentRemoved(this);
+	if (UVaFogController::Get(this, EGetWorldErrorMode::LogAndReturnNull))
+	{
+		UVaFogController::Get(this)->OnFogAgentRemoved(this);
+	}
 }
