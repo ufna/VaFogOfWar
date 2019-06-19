@@ -8,6 +8,9 @@
 
 #include "VaFogLayerComponent.generated.h"
 
+class UTextureRenderTarget2D;
+class UMaterialInterface;
+
 UCLASS(ClassGroup = (VAFogOfWar), editinlinenew, meta = (BlueprintSpawnableComponent))
 class VAFOGOFWAR_API UVaFogLayerComponent : public UActorComponent
 {
@@ -15,6 +18,18 @@ class VAFOGOFWAR_API UVaFogLayerComponent : public UActorComponent
 
 public:
 	/**  */
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Fog of War")
 	EVaFogLayerChannel LayerChannel;
+
+	/**  */
+	UPROPERTY(EditDefaultsOnly, Category = "Fog of War")
+	UTextureRenderTarget2D* OriginalRenderTarget;
+
+	/**  */
+	UPROPERTY(EditDefaultsOnly, Category = "Fog of War")
+	UTextureRenderTarget2D* FinalRenderTarget;
+
+	/**  */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Fog of War")
+	UMaterialInterface* BlurMaterial;
 };
