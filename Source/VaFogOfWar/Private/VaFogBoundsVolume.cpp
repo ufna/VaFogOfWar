@@ -32,12 +32,12 @@ void AVaFogBoundsVolume::PostRegisterAllComponents()
 	check(FMath::IsPowerOfTwo(CachedFogLayerResolution));
 
 	// Calculate world to layet transform
-	float VolumeScaleX = CachedFogLayerResolution / (GetBrushComponent()->Bounds.BoxExtent.X * 2);
-	float VolumeScaleY = CachedFogLayerResolution / (GetBrushComponent()->Bounds.BoxExtent.Y * 2);
+	float VolumeScaleX = (GetBrushComponent()->Bounds.BoxExtent.X * 2) / CachedFogLayerResolution;
+	float VolumeScaleY = (GetBrushComponent()->Bounds.BoxExtent.Y * 2) / CachedFogLayerResolution;
 	VolumeTransform.SetScale3D({VolumeScaleX, VolumeScaleY, 1});
 
 	VolumeTransform.SetRotation(GetBrushComponent()->GetComponentTransform().GetRotation());
-	VolumeTransform.SetLocation(-GetBrushComponent()->GetComponentTransform().GetLocation());
+	VolumeTransform.SetLocation(GetBrushComponent()->GetComponentTransform().GetLocation());
 
 	UE_LOG(LogVaFog, Warning, TEXT("[%s] Cache VolumeTransform: \n%s"), *VA_FUNC_LINE, *VolumeTransform.ToHumanReadableString());
 
@@ -62,9 +62,6 @@ void AVaFogBoundsVolume::PostEditChangeProperty(FPropertyChangedEvent& PropertyC
 
 FIntPoint AVaFogBoundsVolume::TransformWorldToLayer(const FVector& AgentLocation) const
 {
-	FVector LayerPostion = VolumeTransform.TransformVector(AgentLocation);
-
-	UE_LOG(LogVaFog, Warning, TEXT("[%s] LayerPostion: %s"), *VA_FUNC_LINE, *LayerPostion.ToCompactString());
-
-	return FIntPoint();
+	FVector LayerPostion = VolumeTransform.InverseTransformPosition(AgentLocation);
+	return FIntPoint(LayerPostion.X, LayerPostion.Y);
 }

@@ -47,4 +47,16 @@ protected:
 	/** Registered fog agents for layer */
 	UPROPERTY()
 	TArray<UVaFogAgentComponent*> FogAgents;
+
+	//////////////////////////////////////////////////////////////////////////
+	// Debug
+
+public:
+	/** Show agents vision radius for this layer */
+	UPROPERTY(EditDefaultsOnly, Category = "Debug")
+	bool bDebugAgents;
+
+	/** Color to draw */
+	UPROPERTY(EditDefaultsOnly, Category = "Debug")
+	FColor DebugAgentsColor;
 };

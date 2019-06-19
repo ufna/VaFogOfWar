@@ -7,10 +7,10 @@
 #include "VaFogController.h"
 #include "VaFogDefines.h"
 
+#include "DrawDebugHelpers.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Materials/Material.h"
 #include "UObject/ConstructorHelpers.h"
-#include "DrawDebugHelpers.h"
 
 UVaFogLayerComponent::UVaFogLayerComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -22,6 +22,9 @@ UVaFogLayerComponent::UVaFogLayerComponent(const FObjectInitializer& ObjectIniti
 	bWantsInitializeComponent = true;
 	PrimaryComponentTick.bCanEverTick = true;
 	PrimaryComponentTick.TickGroup = TG_DuringPhysics;
+
+	bDebugAgents = false;
+	DebugAgentsColor = FColor::Red;
 }
 
 void UVaFogLayerComponent::InitializeComponent()
@@ -51,7 +54,10 @@ void UVaFogLayerComponent::TickComponent(float DeltaTime, enum ELevelTick TickTy
 	{
 		FIntPoint AgentLocation = FogVolume->TransformWorldToLayer(FogAgent->GetOwner()->GetActorLocation());
 
-		DrawDebugSphere(GetWorld(), FogAgent->GetOwner()->GetActorLocation(), FogAgent->VisionRadius, 32, FColor::Red, false, 0.0f);
+		if (bDebugAgents)
+		{
+			DrawDebugSphere(GetWorld(), FogAgent->GetOwner()->GetActorLocation(), FogAgent->VisionRadius, 32, DebugAgentsColor, false, 0.0f);
+		}
 	}
 }
 
