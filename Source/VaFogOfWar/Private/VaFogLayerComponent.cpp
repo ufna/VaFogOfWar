@@ -53,6 +53,7 @@ void UVaFogLayerComponent::TickComponent(float DeltaTime, enum ELevelTick TickTy
 	for (auto FogAgent : FogAgents)
 	{
 		FIntPoint AgentLocation = FogVolume->TransformWorldToLayer(FogAgent->GetOwner()->GetActorLocation());
+		UE_LOG(LogVaFog, Warning, TEXT("[%s] Agent [%s] location: %s"), *VA_FUNC_LINE, *FogAgent->GetName(), *AgentLocation.ToString());
 
 		if (bDebugAgents)
 		{
