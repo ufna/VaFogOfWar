@@ -7,7 +7,6 @@
 #include "VaFogOfWar.h"
 #include "VaFogSettings.h"
 
-#include "Builders/CubeBuilder.h"
 #include "Components/BrushComponent.h"
 #include "Engine/CollisionProfile.h"
 
