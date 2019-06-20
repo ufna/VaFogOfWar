@@ -23,9 +23,9 @@ AVaFogBoundsVolume::AVaFogBoundsVolume(const FObjectInitializer& ObjectInitializ
 	LayerToTextureShift = 64;
 }
 
-void AVaFogBoundsVolume::PostRegisterAllComponents()
+void AVaFogBoundsVolume::PostInitializeComponents()
 {
-	Super::PostRegisterAllComponents();
+	Super::PostInitializeComponents();
 
 	// Cache layers resolution for coordinates transform
 	CachedFogLayerResolution = FVaFogOfWarModule::Get().GetSettings()->FogLayerResolution;
@@ -42,7 +42,10 @@ void AVaFogBoundsVolume::PostRegisterAllComponents()
 
 	UE_LOG(LogVaFog, Warning, TEXT("[%s] Cache VolumeTransform: \n%s"), *VA_FUNC_LINE, *VolumeTransform.ToHumanReadableString());
 
-	UVaFogController::Get(this)->OnFogBoundsAdded(this);
+	if (UVaFogController::Get(this))
+	{
+		UVaFogController::Get(this)->OnFogBoundsAdded(this);
+	}
 }
 
 void AVaFogBoundsVolume::Destroyed()
