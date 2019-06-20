@@ -12,6 +12,8 @@ public class VaFogOfWar : ModuleRules
             new string[]
             {
                 "Core",
+                "RenderCore",
+                "RHI"
             }
             );
 

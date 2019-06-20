@@ -9,6 +9,7 @@
 #include "VaFogLayerComponent.generated.h"
 
 class UTextureRenderTarget2D;
+class UTexture2D;
 class UMaterialInterface;
 
 class UVaFogAgentComponent;
@@ -32,8 +33,14 @@ public:
 	EVaFogLayerChannel LayerChannel;
 
 	/**  */
-	UPROPERTY(EditDefaultsOnly, Category = "Fog of War")
-	UTextureRenderTarget2D* OriginalRenderTarget;
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Fog of War")
+	UTexture2D* OriginalTexture;
+
+	/** Updated original texture region */
+	FUpdateTextureRegion2D OriginalRegion;
+
+	/** Original layer texture on CPU */
+	uint8* OriginalBuffer;
 
 	/**  */
 	UPROPERTY(EditDefaultsOnly, Category = "Fog of War")
@@ -47,6 +54,12 @@ protected:
 	/** Registered fog agents for layer */
 	UPROPERTY()
 	TArray<UVaFogAgentComponent*> FogAgents;
+
+private:
+	int32 CachedTextureResolution;
+	int32 W;
+	int32 H;
+	int32 OriginalBufferLength;
 
 	//////////////////////////////////////////////////////////////////////////
 	// Debug
