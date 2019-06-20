@@ -21,6 +21,7 @@ AVaFogBoundsVolume::AVaFogBoundsVolume(const FObjectInitializer& ObjectInitializ
 	bColored = true;
 
 	CachedFogLayerResolution = 128;
+	LayerToTextureShift = 64;
 }
 
 void AVaFogBoundsVolume::PostRegisterAllComponents()
@@ -30,6 +31,7 @@ void AVaFogBoundsVolume::PostRegisterAllComponents()
 	// Cache layers resolution for coordinates transform
 	CachedFogLayerResolution = FVaFogOfWarModule::Get().GetSettings()->FogLayerResolution;
 	check(FMath::IsPowerOfTwo(CachedFogLayerResolution));
+	LayerToTextureShift = CachedFogLayerResolution / 2;
 
 	// Calculate world to layet transform
 	float VolumeScaleX = (GetBrushComponent()->Bounds.BoxExtent.X * 2) / CachedFogLayerResolution;
@@ -62,6 +64,9 @@ void AVaFogBoundsVolume::PostEditChangeProperty(FPropertyChangedEvent& PropertyC
 
 FIntPoint AVaFogBoundsVolume::TransformWorldToLayer(const FVector& AgentLocation) const
 {
-	FVector LayerPostion = VolumeTransform.InverseTransformPosition(AgentLocation);
-	return FIntPoint(LayerPostion.X, LayerPostion.Y);
+	// First transform position into volume local coordinates (scaled with fog rt resolution)
+	FVector LayerPosition = VolumeTransform.InverseTransformPosition(AgentLocation);
+
+	// Then transform it into texture coordinates
+	return FIntPoint(LayerPosition.Y + LayerToTextureShift, (LayerToTextureShift - LayerPosition.X));
 }

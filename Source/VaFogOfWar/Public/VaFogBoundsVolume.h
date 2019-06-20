@@ -28,6 +28,9 @@ class VAFOGOFWAR_API AVaFogBoundsVolume : public AVolume
 private:
 	int32 CachedFogLayerResolution;
 
+	/** Shift that should be applied to transform layer coordinates into texture coordinates */
+	int32 LayerToTextureShift;
+
 	/** World to layer transform */
 	FTransform VolumeTransform;
 };
