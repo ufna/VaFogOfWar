@@ -122,10 +122,9 @@ void UVaFogLayerComponent::TickComponent(float DeltaTime, enum ELevelTick TickTy
 	TextureData->SrcData = Buffer;
 	TextureData->Region = &OriginalRegion;
 
-	ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(
-		UpdateTexture,
-		FTextureData*, TextureData, TextureData,
-		{
+	ENQUEUE_RENDER_COMMAND(UpdateTexture)
+	(
+		[TextureData](FRHICommandListImmediate& RHICmdList) {
 			int32 CurrentFirstMip = TextureData->Texture2DResource->GetCurrentFirstMip();
 			if (CurrentFirstMip <= 0)
 			{
