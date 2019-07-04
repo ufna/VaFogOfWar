@@ -22,8 +22,7 @@ class VAFOGOFWAR_API AVaFogBoundsVolume : public AVolume
 #endif
 
 	/** Convert world location of vector to layer one */
-	FIntPoint
-	TransformWorldToLayer(const FVector& AgentLocation) const;
+	FIntPoint TransformWorldToLayer(const FVector& AgentLocation) const;
 
 private:
 	int32 CachedFogLayerResolution;
