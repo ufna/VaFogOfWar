@@ -22,13 +22,14 @@ UVaFogLayerComponent::UVaFogLayerComponent(const FObjectInitializer& ObjectIniti
 	PrimaryComponentTick.bCanEverTick = true;
 	PrimaryComponentTick.TickGroup = TG_DuringPhysics;
 
-	OriginalBuffer = nullptr;
-	OriginalBufferLength = 0;
-	W = 0;
-	H = 0;
+	SourceBuffer = nullptr;
+	SourceBufferLength = 0;
+	SourceW = 0;
+	SourceH = 0;
 
 	bDebugAgents = false;
 	DebugAgentsColor = FColor::Red;
+	bDebugSourceTexture = false;
 }
 
 void UVaFogLayerComponent::InitializeComponent()
@@ -36,25 +37,29 @@ void UVaFogLayerComponent::InitializeComponent()
 	Super::InitializeComponent();
 
 	// Cache texture size values
-	CachedTextureResolution = FVaFogOfWarModule::Get().GetSettings()->FogLayerResolution;
+	int32 CachedTextureResolution = FVaFogOfWarModule::Get().GetSettings()->FogLayerResolution;
 	check(FMath::IsPowerOfTwo(CachedTextureResolution));
-	OriginalRegion = FUpdateTextureRegion2D(0, 0, 0, 0, CachedTextureResolution, CachedTextureResolution);
+	SourceUpdateRegion = FUpdateTextureRegion2D(0, 0, 0, 0, CachedTextureResolution, CachedTextureResolution);
 
 	// Create texture buffer and initialize it
-	check(!OriginalBuffer);
-	W = (int32)OriginalRegion.Width;
-	H = (int32)OriginalRegion.Height;
-	OriginalBuffer = new uint8[W * H];
-	OriginalBufferLength = W * H * sizeof(uint8);
-	FMemory::Memzero(OriginalBuffer, OriginalBufferLength);
+	check(!SourceBuffer);
+	SourceW = (int32)SourceUpdateRegion.Width;
+	SourceH = (int32)SourceUpdateRegion.Height;
+	SourceBuffer = new uint8[SourceW * SourceH];
+	SourceBufferLength = SourceW * SourceH * sizeof(uint8);
+	FMemory::Memzero(SourceBuffer, SourceBufferLength);
 
-	OriginalTexture = UTexture2D::CreateTransient(OriginalRegion.Width, OriginalRegion.Height, EPixelFormat::PF_G8);
-	OriginalTexture->CompressionSettings = TextureCompressionSettings::TC_Grayscale;
-	OriginalTexture->SRGB = false;
-	OriginalTexture->Filter = TextureFilter::TF_Trilinear;
-	OriginalTexture->AddressX = TextureAddress::TA_Clamp;
-	OriginalTexture->AddressY = TextureAddress::TA_Clamp;
-	OriginalTexture->UpdateResource();
+	// Prepare debug textures if required
+	if (bDebugSourceTexture)
+	{
+		SourceTexture = UTexture2D::CreateTransient(SourceUpdateRegion.Width, SourceUpdateRegion.Height, EPixelFormat::PF_G8);
+		SourceTexture->CompressionSettings = TextureCompressionSettings::TC_Grayscale;
+		SourceTexture->SRGB = false;
+		SourceTexture->Filter = TextureFilter::TF_Nearest;
+		SourceTexture->AddressX = TextureAddress::TA_Clamp;
+		SourceTexture->AddressY = TextureAddress::TA_Clamp;
+		SourceTexture->UpdateResource();
+	}
 
 	UVaFogController::Get(this)->OnFogLayerAdded(this);
 }
@@ -63,15 +68,15 @@ void UVaFogLayerComponent::UninitializeComponent()
 {
 	Super::UninitializeComponent();
 
-	if (OriginalBuffer)
+	if (SourceBuffer)
 	{
-		delete[] OriginalBuffer;
-		OriginalBuffer = nullptr;
+		delete[] SourceBuffer;
+		SourceBuffer = nullptr;
 	}
 
-	if (OriginalTexture)
+	if (SourceTexture)
 	{
-		OriginalTexture = nullptr;
+		SourceTexture = nullptr;
 	}
 
 	if (UVaFogController::Get(this, EGetWorldErrorMode::LogAndReturnNull))
@@ -84,6 +89,16 @@ void UVaFogLayerComponent::TickComponent(float DeltaTime, enum ELevelTick TickTy
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	UpdateAgents();
+
+	if (bDebugSourceTexture)
+	{
+		UpdateSourceTexture();
+	}
+}
+
+void UVaFogLayerComponent::UpdateAgents()
+{
 	auto FogVolume = UVaFogController::Get(this)->GetFogVolume();
 
 	for (auto FogAgent : FogAgents)
@@ -96,44 +111,9 @@ void UVaFogLayerComponent::TickComponent(float DeltaTime, enum ELevelTick TickTy
 			DrawDebugSphere(GetWorld(), FogAgent->GetOwner()->GetActorLocation(), FogAgent->VisionRadius, 32, DebugAgentsColor, false, 0.0f);
 		}
 
-		check(AgentLocation.X >= 0 && AgentLocation.X < (int32)OriginalRegion.Width && AgentLocation.Y >= 0 && AgentLocation.Y < (int32)OriginalRegion.Height);
-		OriginalBuffer[AgentLocation.Y * OriginalRegion.Width + AgentLocation.X] = 0xFF;
+		check(AgentLocation.X >= 0 && AgentLocation.X < (int32)SourceUpdateRegion.Width && AgentLocation.Y >= 0 && AgentLocation.Y < (int32)SourceUpdateRegion.Height);
+		SourceBuffer[AgentLocation.Y * SourceUpdateRegion.Width + AgentLocation.X] = 0xFF;
 	}
-
-	struct FTextureData
-	{
-		FTexture2DResource* Texture2DResource;
-		FUpdateTextureRegion2D* Region;
-		uint32 SrcPitch;
-		uint8* SrcData;
-	};
-
-	// Copy original data fro GPU
-	uint8* Buffer = new uint8[W * H];
-	FMemory::Memcpy(Buffer, OriginalBuffer, OriginalBufferLength);
-
-	FTextureData* TextureData = new FTextureData();
-	TextureData->Texture2DResource = (FTexture2DResource*)OriginalTexture->Resource;
-	TextureData->SrcPitch = OriginalRegion.Width;
-	TextureData->SrcData = Buffer;
-	TextureData->Region = &OriginalRegion;
-
-	ENQUEUE_RENDER_COMMAND(UpdateTexture)
-	(
-		[TextureData](FRHICommandListImmediate& RHICmdList) {
-			int32 CurrentFirstMip = TextureData->Texture2DResource->GetCurrentFirstMip();
-			if (CurrentFirstMip <= 0)
-			{
-				RHIUpdateTexture2D(
-					TextureData->Texture2DResource->GetTexture2DRHI(),
-					0 - CurrentFirstMip,
-					*TextureData->Region,
-					TextureData->SrcPitch,
-					TextureData->SrcData);
-			}
-			delete[] TextureData->SrcData;
-			delete TextureData;
-		});
 }
 
 void UVaFogLayerComponent::AddFogAgent(UVaFogAgentComponent* FogAgent)
@@ -147,5 +127,50 @@ void UVaFogLayerComponent::RemoveFogAgent(UVaFogAgentComponent* InFogAgent)
 	if (NumRemoved == 0)
 	{
 		UE_LOG(LogVaFog, Error, TEXT("[%s] No cached data found for: %s"), *VA_FUNC_LINE, *InFogAgent->GetName());
+	}
+}
+
+void UVaFogLayerComponent::UpdateSourceTexture()
+{
+	if (SourceTexture)
+	{
+		struct FTextureData
+		{
+			FTexture2DResource* Texture2DResource;
+			FUpdateTextureRegion2D* Region;
+			uint32 SrcPitch;
+			uint8* SrcData;
+		};
+
+		// Copy original data fro GPU
+		uint8* Buffer = new uint8[SourceW * SourceH];
+		FMemory::Memcpy(Buffer, SourceBuffer, SourceBufferLength);
+
+		FTextureData* TextureData = new FTextureData();
+		TextureData->Texture2DResource = (FTexture2DResource*)SourceTexture->Resource;
+		TextureData->SrcPitch = SourceUpdateRegion.Width;
+		TextureData->SrcData = Buffer;
+		TextureData->Region = &SourceUpdateRegion;
+
+		ENQUEUE_RENDER_COMMAND(UpdateTexture)
+		(
+			[TextureData](FRHICommandListImmediate& RHICmdList) {
+				int32 CurrentFirstMip = TextureData->Texture2DResource->GetCurrentFirstMip();
+				if (CurrentFirstMip <= 0)
+				{
+					RHIUpdateTexture2D(
+						TextureData->Texture2DResource->GetTexture2DRHI(),
+						0 - CurrentFirstMip,
+						*TextureData->Region,
+						TextureData->SrcPitch,
+						TextureData->SrcData);
+				}
+				delete[] TextureData->SrcData;
+				delete TextureData;
+			});
+	}
+	else
+	{
+		UE_LOG(LogVaFog, Error, TEXT("[%s] SourceTexture is invalid"), *VA_FUNC_LINE);
 	}
 }
