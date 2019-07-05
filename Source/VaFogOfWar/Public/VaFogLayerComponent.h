@@ -46,13 +46,21 @@ private:
 	/** Original layer texture on CPU */
 	uint8* SourceBuffer;
 
-	/** Source texture updated region */
-	FUpdateTextureRegion2D SourceUpdateRegion;
+	/** Upscaled layer texture on CPU */
+	uint8* UpscaleBuffer;
 
-private:
+	/** Cached data helpers for original texture */
 	int32 SourceW;
 	int32 SourceH;
 	int32 SourceBufferLength;
+	FUpdateTextureRegion2D SourceUpdateRegion;
+
+	/** Cached data helpers for upscale texture */
+	int32 UpscaleW;
+	int32 UpscaleH;
+	int32 UpscaleBufferLength;
+	FUpdateTextureRegion2D UpscaleUpdateRegion;
+
 
 	//////////////////////////////////////////////////////////////////////////
 	// Debug

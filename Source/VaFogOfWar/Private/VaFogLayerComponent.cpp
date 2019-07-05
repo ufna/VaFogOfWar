@@ -23,9 +23,15 @@ UVaFogLayerComponent::UVaFogLayerComponent(const FObjectInitializer& ObjectIniti
 	PrimaryComponentTick.TickGroup = TG_DuringPhysics;
 
 	SourceBuffer = nullptr;
-	SourceBufferLength = 0;
+	UpscaleBuffer = nullptr;
+	
 	SourceW = 0;
 	SourceH = 0;
+	SourceBufferLength = 0;
+
+	UpscaleW = 0;
+	UpscaleH = 0;
+	UpscaleBufferLength = 0;
 
 	bDebugAgents = false;
 	DebugAgentsColor = FColor::Red;
@@ -39,12 +45,11 @@ void UVaFogLayerComponent::InitializeComponent()
 	// Cache texture size values
 	int32 CachedTextureResolution = FVaFogOfWarModule::Get().GetSettings()->FogLayerResolution;
 	check(FMath::IsPowerOfTwo(CachedTextureResolution));
-	SourceUpdateRegion = FUpdateTextureRegion2D(0, 0, 0, 0, CachedTextureResolution, CachedTextureResolution);
-
+	
 	// Create texture buffer and initialize it
 	check(!SourceBuffer);
-	SourceW = (int32)SourceUpdateRegion.Width;
-	SourceH = (int32)SourceUpdateRegion.Height;
+	SourceW = CachedTextureResolution;
+	SourceH = CachedTextureResolution;
 	SourceBuffer = new uint8[SourceW * SourceH];
 	SourceBufferLength = SourceW * SourceH * sizeof(uint8);
 	FMemory::Memzero(SourceBuffer, SourceBufferLength);
@@ -52,6 +57,8 @@ void UVaFogLayerComponent::InitializeComponent()
 	// Prepare debug textures if required
 	if (bDebugSourceTexture)
 	{
+		SourceUpdateRegion = FUpdateTextureRegion2D(0, 0, 0, 0, CachedTextureResolution, CachedTextureResolution);
+
 		SourceTexture = UTexture2D::CreateTransient(SourceUpdateRegion.Width, SourceUpdateRegion.Height, EPixelFormat::PF_G8);
 		SourceTexture->CompressionSettings = TextureCompressionSettings::TC_Grayscale;
 		SourceTexture->SRGB = false;
@@ -111,8 +118,8 @@ void UVaFogLayerComponent::UpdateAgents()
 			DrawDebugSphere(GetWorld(), FogAgent->GetOwner()->GetActorLocation(), FogAgent->VisionRadius, 32, DebugAgentsColor, false, 0.0f);
 		}
 
-		check(AgentLocation.X >= 0 && AgentLocation.X < (int32)SourceUpdateRegion.Width && AgentLocation.Y >= 0 && AgentLocation.Y < (int32)SourceUpdateRegion.Height);
-		SourceBuffer[AgentLocation.Y * SourceUpdateRegion.Width + AgentLocation.X] = 0xFF;
+		check(AgentLocation.X >= 0 && AgentLocation.X < SourceW && AgentLocation.Y >= 0 && AgentLocation.Y < SourceH);
+		SourceBuffer[AgentLocation.Y * SourceW + AgentLocation.X] = 0xFF;
 	}
 }
 
