@@ -15,6 +15,27 @@ struct FUpdateTextureRegion2D;
 
 class UVaFogAgentComponent;
 
+struct FogTexel2x2
+{
+	uint8 p11;
+	uint8 p12;
+	uint8 p21;
+	uint8 p22;
+
+	bool operator==(const FogTexel2x2& p) const
+	{
+		return p11 == p.p11 &&
+			   p11 == p.p12 &&
+			   p11 == p.p21 &&
+			   p11 == p.p22;
+	}
+};
+
+struct FogTexel4x4
+{
+	uint8 pixels[16];
+};
+
 UCLASS(ClassGroup = (VAFogOfWar), editinlinenew, meta = (BlueprintSpawnableComponent))
 class VAFOGOFWAR_API UVaFogLayerComponent : public UActorComponent
 {
@@ -28,6 +49,9 @@ public:
 protected:
 	/** Process agents info and update FoW map */
 	void UpdateAgents();
+
+	/** Process manual upscaling from 128 to 512 */
+	void UpdateUpscaleBuffer();
 
 public:
 	/** Defines which refresh logic will be used: permanent drawing or runtime visible area */
