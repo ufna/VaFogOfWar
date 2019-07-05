@@ -11,6 +11,7 @@
 class UTextureRenderTarget2D;
 class UTexture2D;
 class UMaterialInterface;
+struct FUpdateTextureRegion2D;
 
 class UVaFogAgentComponent;
 
@@ -61,7 +62,6 @@ private:
 	int32 UpscaleBufferLength;
 	FUpdateTextureRegion2D UpscaleUpdateRegion;
 
-
 	//////////////////////////////////////////////////////////////////////////
 	// Debug
 
@@ -74,16 +74,20 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Debug")
 	FColor DebugAgentsColor;
 
-	/** Enable source buffer to texture drawing */
+	/** Enable source and upscale buffer to texture drawing */
 	UPROPERTY(EditDefaultsOnly, Category = "Debug")
-	bool bDebugSourceTexture;
+	bool bDebugBuffers;
 
 public:
 	/** Low-res FoW source buffer as image (check bDebugSourceTexture) */
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Fog of War")
 	UTexture2D* SourceTexture;
 
+	/** Upscaled FoW buffer as image (check bDebugUpscaleTexture) */
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Fog of War")
+	UTexture2D* UpscaleTexture;
+
 protected:
-	/** Render source buffer into debug texture */
-	void UpdateSourceTexture();
+	/** Render buffer into debug texture */
+	void UpdateTextureFromBuffer(UTexture2D* DestinationTexture, uint8* SrcBuffer, int32 SrcBufferLength, FUpdateTextureRegion2D& UpdateTextureRegion);
 };

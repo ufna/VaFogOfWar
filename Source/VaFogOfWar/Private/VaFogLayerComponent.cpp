@@ -13,6 +13,7 @@
 #include "Engine/Texture2D.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Materials/Material.h"
+#include "RHI.h"
 
 UVaFogLayerComponent::UVaFogLayerComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -24,7 +25,7 @@ UVaFogLayerComponent::UVaFogLayerComponent(const FObjectInitializer& ObjectIniti
 
 	SourceBuffer = nullptr;
 	UpscaleBuffer = nullptr;
-	
+
 	SourceW = 0;
 	SourceH = 0;
 	SourceBufferLength = 0;
@@ -35,7 +36,7 @@ UVaFogLayerComponent::UVaFogLayerComponent(const FObjectInitializer& ObjectIniti
 
 	bDebugAgents = false;
 	DebugAgentsColor = FColor::Red;
-	bDebugSourceTexture = false;
+	bDebugBuffers = false;
 }
 
 void UVaFogLayerComponent::InitializeComponent()
@@ -45,7 +46,8 @@ void UVaFogLayerComponent::InitializeComponent()
 	// Cache texture size values
 	int32 CachedTextureResolution = FVaFogOfWarModule::Get().GetSettings()->FogLayerResolution;
 	check(FMath::IsPowerOfTwo(CachedTextureResolution));
-	
+	int32 CachedUpscaleResolution = CachedTextureResolution * 4;
+
 	// Create texture buffer and initialize it
 	check(!SourceBuffer);
 	SourceW = CachedTextureResolution;
@@ -54,18 +56,34 @@ void UVaFogLayerComponent::InitializeComponent()
 	SourceBufferLength = SourceW * SourceH * sizeof(uint8);
 	FMemory::Memzero(SourceBuffer, SourceBufferLength);
 
-	// Prepare debug textures if required
-	if (bDebugSourceTexture)
-	{
-		SourceUpdateRegion = FUpdateTextureRegion2D(0, 0, 0, 0, CachedTextureResolution, CachedTextureResolution);
+	// Create texture buffer for upscaled texture and initialize it
+	check(!UpscaleBuffer);
+	UpscaleW = CachedUpscaleResolution;
+	UpscaleH = CachedUpscaleResolution;
+	UpscaleBuffer = new uint8[UpscaleW * UpscaleH];
+	UpscaleBufferLength = UpscaleW * UpscaleH * sizeof(uint8);
+	FMemory::Memzero(UpscaleBuffer, UpscaleBufferLength);
 
-		SourceTexture = UTexture2D::CreateTransient(SourceUpdateRegion.Width, SourceUpdateRegion.Height, EPixelFormat::PF_G8);
+	// Prepare debug textures if required
+	if (bDebugBuffers)
+	{
+		SourceUpdateRegion = FUpdateTextureRegion2D(0, 0, 0, 0, SourceW, SourceH);
+		SourceTexture = UTexture2D::CreateTransient(SourceW, SourceH, EPixelFormat::PF_G8);
 		SourceTexture->CompressionSettings = TextureCompressionSettings::TC_Grayscale;
 		SourceTexture->SRGB = false;
 		SourceTexture->Filter = TextureFilter::TF_Nearest;
 		SourceTexture->AddressX = TextureAddress::TA_Clamp;
 		SourceTexture->AddressY = TextureAddress::TA_Clamp;
 		SourceTexture->UpdateResource();
+
+		UpscaleUpdateRegion = FUpdateTextureRegion2D(0, 0, 0, 0, UpscaleW, UpscaleH);
+		UpscaleTexture = UTexture2D::CreateTransient(UpscaleW, UpscaleH, EPixelFormat::PF_G8);
+		UpscaleTexture->CompressionSettings = TextureCompressionSettings::TC_Grayscale;
+		UpscaleTexture->SRGB = false;
+		UpscaleTexture->Filter = TextureFilter::TF_Nearest;
+		UpscaleTexture->AddressX = TextureAddress::TA_Clamp;
+		UpscaleTexture->AddressY = TextureAddress::TA_Clamp;
+		UpscaleTexture->UpdateResource();
 	}
 
 	UVaFogController::Get(this)->OnFogLayerAdded(this);
@@ -81,7 +99,18 @@ void UVaFogLayerComponent::UninitializeComponent()
 		SourceBuffer = nullptr;
 	}
 
+	if (UpscaleBuffer)
+	{
+		delete[] UpscaleBuffer;
+		UpscaleBuffer = nullptr;
+	}
+
 	if (SourceTexture)
+	{
+		SourceTexture = nullptr;
+	}
+
+	if (UpscaleTexture)
 	{
 		SourceTexture = nullptr;
 	}
@@ -98,9 +127,10 @@ void UVaFogLayerComponent::TickComponent(float DeltaTime, enum ELevelTick TickTy
 
 	UpdateAgents();
 
-	if (bDebugSourceTexture)
+	if (bDebugBuffers)
 	{
-		UpdateSourceTexture();
+		UpdateTextureFromBuffer(SourceTexture, SourceBuffer, SourceBufferLength, SourceUpdateRegion);
+		UpdateTextureFromBuffer(UpscaleTexture, UpscaleBuffer, UpscaleBufferLength, UpscaleUpdateRegion);
 	}
 }
 
@@ -137,47 +167,40 @@ void UVaFogLayerComponent::RemoveFogAgent(UVaFogAgentComponent* InFogAgent)
 	}
 }
 
-void UVaFogLayerComponent::UpdateSourceTexture()
+void UVaFogLayerComponent::UpdateTextureFromBuffer(UTexture2D* DestinationTexture, uint8* SrcBuffer, int32 SrcBufferLength, FUpdateTextureRegion2D& UpdateTextureRegion)
 {
-	if (SourceTexture)
+	struct FTextureData
 	{
-		struct FTextureData
-		{
-			FTexture2DResource* Texture2DResource;
-			FUpdateTextureRegion2D* Region;
-			uint32 SrcPitch;
-			uint8* SrcData;
-		};
+		FTexture2DResource* Texture2DResource;
+		FUpdateTextureRegion2D* Region;
+		uint32 SrcPitch;
+		uint8* SrcData;
+	};
 
-		// Copy original data fro GPU
-		uint8* Buffer = new uint8[SourceW * SourceH];
-		FMemory::Memcpy(Buffer, SourceBuffer, SourceBufferLength);
+	// Copy original data fro GPU
+	uint8* Buffer = new uint8[SrcBufferLength];
+	FMemory::Memcpy(Buffer, SrcBuffer, SrcBufferLength);
 
-		FTextureData* TextureData = new FTextureData();
-		TextureData->Texture2DResource = (FTexture2DResource*)SourceTexture->Resource;
-		TextureData->SrcPitch = SourceUpdateRegion.Width;
-		TextureData->SrcData = Buffer;
-		TextureData->Region = &SourceUpdateRegion;
+	FTextureData* TextureData = new FTextureData();
+	TextureData->Texture2DResource = (FTexture2DResource*)DestinationTexture->Resource;
+	TextureData->SrcPitch = UpdateTextureRegion.Width;
+	TextureData->SrcData = Buffer;
+	TextureData->Region = &UpdateTextureRegion;
 
-		ENQUEUE_RENDER_COMMAND(UpdateTexture)
-		(
-			[TextureData](FRHICommandListImmediate& RHICmdList) {
-				int32 CurrentFirstMip = TextureData->Texture2DResource->GetCurrentFirstMip();
-				if (CurrentFirstMip <= 0)
-				{
-					RHIUpdateTexture2D(
-						TextureData->Texture2DResource->GetTexture2DRHI(),
-						0 - CurrentFirstMip,
-						*TextureData->Region,
-						TextureData->SrcPitch,
-						TextureData->SrcData);
-				}
-				delete[] TextureData->SrcData;
-				delete TextureData;
-			});
-	}
-	else
-	{
-		UE_LOG(LogVaFog, Error, TEXT("[%s] SourceTexture is invalid"), *VA_FUNC_LINE);
-	}
+	ENQUEUE_RENDER_COMMAND(UpdateTexture)
+	(
+		[TextureData](FRHICommandListImmediate& RHICmdList) {
+			int32 CurrentFirstMip = TextureData->Texture2DResource->GetCurrentFirstMip();
+			if (CurrentFirstMip <= 0)
+			{
+				RHIUpdateTexture2D(
+					TextureData->Texture2DResource->GetTexture2DRHI(),
+					0 - CurrentFirstMip,
+					*TextureData->Region,
+					TextureData->SrcPitch,
+					TextureData->SrcData);
+			}
+			delete[] TextureData->SrcData;
+			delete TextureData;
+		});
 }
