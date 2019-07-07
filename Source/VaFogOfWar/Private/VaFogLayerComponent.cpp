@@ -21,10 +21,10 @@
 namespace std
 {
 template <>
-struct hash<FogTexel2x2>
+struct hash<FFogTexel2x2>
 {
 	size_t
-	operator()(const FogTexel2x2& obj) const
+	operator()(const FFogTexel2x2& obj) const
 	{
 		return hash<int>()(obj.p11 * 1000 + obj.p12 * 100 + obj.p21 * 10 + obj.p22);
 	}
@@ -32,7 +32,7 @@ struct hash<FogTexel2x2>
 } // namespace std
 
 // clang-format off
-static const std::unordered_map<FogTexel2x2, FogTexel4x4> UpscaleTemplate = {
+static const std::unordered_map<FFogTexel2x2, FFogTexel4x4> UpscaleTemplate = {
 	// 1
 	{	{	0x00, 0x00, 0x00, 0x00	},	{	0x00, 0x00, 0x00, 0x00, 
 											0x00, 0x00, 0x00, 0x00,
@@ -257,6 +257,36 @@ void UVaFogLayerComponent::UpdateAgents()
 
 void UVaFogLayerComponent::UpdateUpscaleBuffer()
 {
+	for (int32 x = 0; x < SourceW; ++x)
+	{
+		for (int32 y = 0; y < SourceH; ++y)
+		{
+			// Fetch original texture pixel and its neighbors
+			FFogTexel2x2 SourceTexel = FetchTexelFromSource(x, y);
+			FFogTexel4x4 UpscaleTexel = UpscaleTemplate.at(SourceTexel);
+
+			// Apply texel to upscale buffer based on template
+			for (int32 i = 0; i < 4; ++i)
+			{
+				FMemory::Memcpy(&UpscaleBuffer[(4 * y + i) * UpscaleW + 4 * x], &UpscaleTexel.pixels[i], 4 * sizeof(uint8));
+			}
+		}
+	}
+}
+
+FFogTexel2x2 UVaFogLayerComponent::FetchTexelFromSource(int32 W, int32 H)
+{
+	// Clamp neighbor coords if necessary
+	int32 NeighborW = FMath::Min(W + 1, SourceW - 1);
+	int32 NeighborH = FMath::Min(H + 1, SourceH - 1);
+
+	FFogTexel2x2 Texel;
+	Texel.p11 = SourceBuffer[H * SourceW + W];
+	Texel.p12 = SourceBuffer[H * SourceW + NeighborW];
+	Texel.p21 = SourceBuffer[NeighborH * SourceW + W];
+	Texel.p22 = SourceBuffer[NeighborH * SourceW + NeighborW];
+
+	return std::move(Texel);
 }
 
 void UVaFogLayerComponent::AddFogAgent(UVaFogAgentComponent* FogAgent)

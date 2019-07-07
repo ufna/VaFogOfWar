@@ -15,25 +15,28 @@ struct FUpdateTextureRegion2D;
 
 class UVaFogAgentComponent;
 
-struct FogTexel2x2
+struct FFogTexel2x2
 {
-	uint8 p11;
-	uint8 p12;
-	uint8 p21;
-	uint8 p22;
+	uint8 p11, p12;
+	uint8 p21, p22;
 
-	bool operator==(const FogTexel2x2& p) const
+	bool operator==(const FFogTexel2x2& p) const
 	{
 		return p11 == p.p11 &&
-			   p11 == p.p12 &&
-			   p11 == p.p21 &&
-			   p11 == p.p22;
+			   p12 == p.p12 &&
+			   p21 == p.p21 &&
+			   p22 == p.p22;
+	}
+
+	FString ToString() const
+	{
+		return FString::Printf(TEXT("%d %d %d %d"), p11, p12, p21, p22);
 	}
 };
 
-struct FogTexel4x4
+struct FFogTexel4x4
 {
-	uint8 pixels[16];
+	uint8 pixels[4][4];
 };
 
 UCLASS(ClassGroup = (VAFogOfWar), editinlinenew, meta = (BlueprintSpawnableComponent))
@@ -52,6 +55,10 @@ protected:
 
 	/** Process manual upscaling from 128 to 512 */
 	void UpdateUpscaleBuffer();
+
+private:
+	/** Read pixel with desired position and constuct texel based on its neighbors */
+	FFogTexel2x2 FetchTexelFromSource(int32 W, int32 H);
 
 public:
 	/** Defines which refresh logic will be used: permanent drawing or runtime visible area */
