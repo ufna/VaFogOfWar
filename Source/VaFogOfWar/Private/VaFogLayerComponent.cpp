@@ -18,6 +18,8 @@
 #include <functional>
 #include <unordered_map>
 
+DECLARE_CYCLE_STAT(TEXT("UpdateUpscaleBuffer"), STAT_UpdateUpscaleBuffer, STATGROUP_VaFog);
+
 namespace std
 {
 template <>
@@ -257,6 +259,8 @@ void UVaFogLayerComponent::UpdateAgents()
 
 void UVaFogLayerComponent::UpdateUpscaleBuffer()
 {
+	SCOPE_CYCLE_COUNTER(STAT_UpdateUpscaleBuffer);
+
 	for (int32 x = 0; x < SourceW; ++x)
 	{
 		for (int32 y = 0; y < SourceH; ++y)

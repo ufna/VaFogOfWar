@@ -7,6 +7,8 @@
 #include "Logging/LogMacros.h"
 #include "Logging/LogVerbosity.h"
 
+DECLARE_STATS_GROUP(TEXT("VA Fog of War"), STATGROUP_VaFog, STATCAT_Advanced);
+
 DECLARE_LOG_CATEGORY_EXTERN(LogVaFog, Log, All);
 
 #define VA_FUNC (FString(__FUNCTION__))				 // Current Class Name + Function Name where this is called
