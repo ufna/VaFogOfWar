@@ -18,6 +18,7 @@
 #include <functional>
 #include <unordered_map>
 
+DECLARE_CYCLE_STAT(TEXT("UpdateAgents"), STAT_UpdateAgents, STATGROUP_VaFog);
 DECLARE_CYCLE_STAT(TEXT("UpdateUpscaleBuffer"), STAT_UpdateUpscaleBuffer, STATGROUP_VaFog);
 DECLARE_CYCLE_STAT(TEXT("DrawCircle"), STAT_DrawCircle, STATGROUP_VaFog);
 DECLARE_CYCLE_STAT(TEXT("Plot4Points"), STAT_Plot4Points, STATGROUP_VaFog);
@@ -245,6 +246,8 @@ void UVaFogLayerComponent::TickComponent(float DeltaTime, enum ELevelTick TickTy
 
 void UVaFogLayerComponent::UpdateAgents()
 {
+	SCOPE_CYCLE_COUNTER(STAT_UpdateAgents);
+
 	auto FogVolume = UVaFogController::Get(this)->GetFogVolume();
 
 	for (auto FogAgent : FogAgents)
