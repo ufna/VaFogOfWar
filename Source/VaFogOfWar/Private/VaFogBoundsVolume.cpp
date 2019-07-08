@@ -7,8 +7,10 @@
 #include "VaFogOfWar.h"
 #include "VaFogSettings.h"
 
+#include "Components/BillboardComponent.h"
 #include "Components/BrushComponent.h"
 #include "Engine/CollisionProfile.h"
+#include "UObject/ConstructorHelpers.h"
 
 AVaFogBoundsVolume::AVaFogBoundsVolume(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -21,6 +23,31 @@ AVaFogBoundsVolume::AVaFogBoundsVolume(const FObjectInitializer& ObjectInitializ
 
 	CachedFogLayerResolution = 128;
 	LayerToTextureShift = 64;
+
+#if WITH_EDITORONLY_DATA
+	SpriteComponent = CreateEditorOnlyDefaultSubobject<UBillboardComponent>(TEXT("Sprite"));
+
+	if (!IsRunningCommandlet() && (SpriteComponent != nullptr))
+	{
+		// Structure to hold one-time initialization
+		struct FConstructorStatics
+		{
+			ConstructorHelpers::FObjectFinderOptional<UTexture2D> TextRenderTexture;
+			FConstructorStatics()
+				: TextRenderTexture(TEXT("/Engine/EditorResources/S_SkyLight"))
+			{
+			}
+		};
+		static FConstructorStatics ConstructorStatics;
+
+		SpriteComponent->Sprite = ConstructorStatics.TextRenderTexture.Get();
+		SpriteComponent->RelativeScale3D = FVector(1.f, 1.f, 1.f);
+		SpriteComponent->SetupAttachment(GetBrushComponent());
+		SpriteComponent->bIsScreenSizeScaled = true;
+		SpriteComponent->bAbsoluteScale = true;
+		SpriteComponent->bReceivesDecals = false;
+	}
+#endif
 }
 
 void AVaFogBoundsVolume::PostInitializeComponents()

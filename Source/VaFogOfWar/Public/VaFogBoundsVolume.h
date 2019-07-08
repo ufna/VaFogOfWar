@@ -21,6 +21,13 @@ class VAFOGOFWAR_API AVaFogBoundsVolume : public AVolume
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 
+private:
+#if WITH_EDITORONLY_DATA
+	UPROPERTY()
+	UBillboardComponent* SpriteComponent;
+#endif
+
+public:
 	/** Convert world location of vector to layer one */
 	FIntPoint TransformWorldToLayer(const FVector& AgentLocation) const;
 
