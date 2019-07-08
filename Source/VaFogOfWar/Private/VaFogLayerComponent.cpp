@@ -290,8 +290,13 @@ void UVaFogLayerComponent::UpdateUpscaleBuffer()
 
 void UVaFogLayerComponent::DrawCircle(int32 CenterX, int32 CenterY, int32 Radius)
 {
+	if (Radius > SourceW)
+	{
+		UE_LOG(LogVaFog, Warning, TEXT("[%s] Vision radius %d is larger than source width %d"), *VA_FUNC_LINE, Radius, SourceW);
+	}
+
 	int32 RadiusError = -Radius;
-	int32 X = Radius;
+	int32 X = FMath::Min(Radius, SourceW);
 	int32 Y = 0;
 
 	while (X >= Y)
@@ -326,12 +331,13 @@ void UVaFogLayerComponent::Plot4Points(int32 CenterX, int32 CenterY, int32 X, in
 
 void UVaFogLayerComponent::DrawHorizontalLine(int32 x0, int32 y0, int32 x1)
 {
-	// OPTIMIZE IT !!!
-	for (int x = x0; x <= x1; ++x)
-	{
-		if (x > 0 && x < SourceW && y0 > 0 && y0 < SourceH)
-			SourceBuffer[y0 * SourceW + x] = 0xFF;
-	}
+	if (y0 < 0 || y0 >= SourceH || x0 >= SourceW || x1 < 0)
+		return;
+
+	int32 x0opt = FMath::Max(x0, 0);
+	int32 x1opt = FMath::Clamp(x1, x0opt, SourceW - 1);
+
+	FMemory::Memset(&SourceBuffer[y0 * SourceW + x0opt], 0xFF, x1opt - x0opt + 1);
 }
 
 FFogTexel2x2 UVaFogLayerComponent::FetchTexelFromSource(int32 W, int32 H)

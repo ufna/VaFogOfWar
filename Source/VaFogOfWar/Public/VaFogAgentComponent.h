@@ -19,10 +19,10 @@ public:
 
 public:
 	/** Fog layer we're scouting by the agent */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	EVaFogLayerChannel TargetChannel;
 
 	/** Agent vision radius in cm (set 0 to use single cell vision) */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	int32 VisionRadius;
 };
