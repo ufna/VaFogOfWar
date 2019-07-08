@@ -11,7 +11,7 @@ UVaFogAgentComponent::UVaFogAgentComponent(const FObjectInitializer& ObjectIniti
 	bAutoActivate = true;
 	bWantsInitializeComponent = true;
 
-	VisionRadius = 200;
+	VisionRadius = 500;
 }
 
 void UVaFogAgentComponent::InitializeComponent()
