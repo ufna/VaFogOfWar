@@ -19,6 +19,9 @@
 #include <unordered_map>
 
 DECLARE_CYCLE_STAT(TEXT("UpdateUpscaleBuffer"), STAT_UpdateUpscaleBuffer, STATGROUP_VaFog);
+DECLARE_CYCLE_STAT(TEXT("DrawCircle"), STAT_DrawCircle, STATGROUP_VaFog);
+DECLARE_CYCLE_STAT(TEXT("Plot4Points"), STAT_Plot4Points, STATGROUP_VaFog);
+DECLARE_CYCLE_STAT(TEXT("DrawHorizontalLine"), STAT_DrawHorizontalLine, STATGROUP_VaFog);
 
 namespace std
 {
@@ -290,6 +293,8 @@ void UVaFogLayerComponent::UpdateUpscaleBuffer()
 
 void UVaFogLayerComponent::DrawCircle(int32 CenterX, int32 CenterY, int32 Radius)
 {
+	SCOPE_CYCLE_COUNTER(STAT_DrawCircle);
+
 	if (Radius > SourceW)
 	{
 		UE_LOG(LogVaFog, Warning, TEXT("[%s] Vision radius %d is larger than source width %d"), *VA_FUNC_LINE, Radius, SourceW);
@@ -323,6 +328,8 @@ void UVaFogLayerComponent::DrawCircle(int32 CenterX, int32 CenterY, int32 Radius
 
 void UVaFogLayerComponent::Plot4Points(int32 CenterX, int32 CenterY, int32 X, int32 Y)
 {
+	SCOPE_CYCLE_COUNTER(STAT_Plot4Points);
+
 	DrawHorizontalLine(CenterX - X, CenterY + Y, CenterX + X);
 
 	if (Y != 0)
@@ -333,6 +340,8 @@ void UVaFogLayerComponent::DrawHorizontalLine(int32 x0, int32 y0, int32 x1)
 {
 	if (y0 < 0 || y0 >= SourceH || x0 >= SourceW || x1 < 0)
 		return;
+
+	SCOPE_CYCLE_COUNTER(STAT_DrawHorizontalLine);
 
 	int32 x0opt = FMath::Max(x0, 0);
 	int32 x1opt = FMath::Clamp(x1, x0opt, SourceW - 1);
