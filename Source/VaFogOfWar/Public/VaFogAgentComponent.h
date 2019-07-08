@@ -22,7 +22,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	EVaFogLayerChannel TargetChannel;
 
-	/** Agent vision radius in cm */
+	/** Agent vision radius in cm (set 0 to use single cell vision) */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	int32 VisionRadius;
 };

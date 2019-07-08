@@ -57,6 +57,11 @@ protected:
 	void UpdateUpscaleBuffer();
 
 private:
+	/** Rasterize circle with Bresenham's Midpoint circle algorithm, see https://en.wikipedia.org/wiki/Midpoint_circle_algorithm */
+	void DrawCircle(int32 CenterX, int32 CenterY, int32 Radius);
+	void Plot4Points(int32 CenterX, int32 CenterY, int32 X, int32 Y);
+	void DrawHorizontalLine(int32 x0, int32 y0, int32 x1);
+
 	/** Read pixel with desired position and constuct texel based on its neighbors */
 	FFogTexel2x2 FetchTexelFromSource(int32 W, int32 H);
 

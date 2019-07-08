@@ -101,3 +101,9 @@ FIntPoint AVaFogBoundsVolume::TransformWorldToLayer(const FVector& AgentLocation
 		FMath::Clamp(FMath::RoundToInt(LayerPosition.Y) + LayerToTextureShift, 0, CachedFogLayerResolution - 1),
 		FMath::Clamp(LayerToTextureShift - FMath::RoundToInt(LayerPosition.X), 0, CachedFogLayerResolution - 1));
 }
+
+int32 AVaFogBoundsVolume::ScaleDistanceToLayer(const int32 Distance) const
+{
+	// For now we assume that volume is square and use X only
+	return Distance / VolumeTransform.GetScale3D().X;
+}

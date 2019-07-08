@@ -31,6 +31,9 @@ public:
 	/** Convert world location of vector to layer one */
 	FIntPoint TransformWorldToLayer(const FVector& AgentLocation) const;
 
+	/** Convert distance in wolrd units to the layer one */
+	int32 ScaleDistanceToLayer(const int32 Distance) const;
+
 private:
 	int32 CachedFogLayerResolution;
 

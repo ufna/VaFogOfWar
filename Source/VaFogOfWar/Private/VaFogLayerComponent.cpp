@@ -254,8 +254,16 @@ void UVaFogLayerComponent::UpdateAgents()
 			DrawDebugSphere(GetWorld(), FogAgent->GetOwner()->GetActorLocation(), FogAgent->VisionRadius, 32, DebugAgentsColor, false, 0.0f);
 		}
 
-		check(AgentLocation.X >= 0 && AgentLocation.X < SourceW && AgentLocation.Y >= 0 && AgentLocation.Y < SourceH);
-		SourceBuffer[AgentLocation.Y * SourceW + AgentLocation.X] = 0xFF;
+		check(FogAgent->VisionRadius >= 0);
+		if (FogAgent->VisionRadius == 0)
+		{
+			check(AgentLocation.X >= 0 && AgentLocation.X < SourceW && AgentLocation.Y >= 0 && AgentLocation.Y < SourceH);
+			SourceBuffer[AgentLocation.Y * SourceW + AgentLocation.X] = 0xFF;
+		}
+		else
+		{
+			DrawCircle(AgentLocation.X, AgentLocation.Y, FogVolume->ScaleDistanceToLayer(FogAgent->VisionRadius));
+		}
 	}
 }
 
@@ -277,6 +285,52 @@ void UVaFogLayerComponent::UpdateUpscaleBuffer()
 				FMemory::Memcpy(&UpscaleBuffer[(4 * y + i) * UpscaleW + 4 * x], &UpscaleTexel.pixels[i], 4 * sizeof(uint8));
 			}
 		}
+	}
+}
+
+void UVaFogLayerComponent::DrawCircle(int32 CenterX, int32 CenterY, int32 Radius)
+{
+	int32 RadiusError = -Radius;
+	int32 X = Radius;
+	int32 Y = 0;
+
+	while (X >= Y)
+	{
+		int lastY = Y;
+
+		RadiusError += Y;
+		++Y;
+		RadiusError += Y;
+
+		Plot4Points(CenterX, CenterY, X, lastY);
+
+		if (RadiusError >= 0)
+		{
+			if (X != lastY)
+				Plot4Points(CenterX, CenterY, lastY, X);
+
+			RadiusError -= X;
+			--X;
+			RadiusError -= X;
+		}
+	}
+}
+
+void UVaFogLayerComponent::Plot4Points(int32 CenterX, int32 CenterY, int32 X, int32 Y)
+{
+	DrawHorizontalLine(CenterX - X, CenterY + Y, CenterX + X);
+
+	if (Y != 0)
+		DrawHorizontalLine(CenterX - X, CenterY - Y, CenterX + X);
+}
+
+void UVaFogLayerComponent::DrawHorizontalLine(int32 x0, int32 y0, int32 x1)
+{
+	// OPTIMIZE IT !!!
+	for (int x = x0; x <= x1; ++x)
+	{
+		if (x > 0 && x < SourceW && y0 > 0 && y0 < SourceH)
+			SourceBuffer[y0 * SourceW + x] = 0xFF;
 	}
 }
 
