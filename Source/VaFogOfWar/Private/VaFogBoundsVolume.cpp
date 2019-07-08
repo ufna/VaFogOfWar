@@ -71,6 +71,6 @@ FIntPoint AVaFogBoundsVolume::TransformWorldToLayer(const FVector& AgentLocation
 
 	// Then transform it into texture coordinates
 	return FIntPoint(
-		FMath::Clamp(FMath::CeilToInt(LayerPosition.Y) + LayerToTextureShift, 0, CachedFogLayerResolution - 1),
-		FMath::Clamp(LayerToTextureShift - FMath::CeilToInt(LayerPosition.X), 0, CachedFogLayerResolution - 1));
+		FMath::Clamp(FMath::RoundToInt(LayerPosition.Y) + LayerToTextureShift, 0, CachedFogLayerResolution - 1),
+		FMath::Clamp(LayerToTextureShift - FMath::RoundToInt(LayerPosition.X), 0, CachedFogLayerResolution - 1));
 }
