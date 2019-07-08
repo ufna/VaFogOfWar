@@ -178,16 +178,17 @@ void UVaFogLayerComponent::InitializeComponent()
 		SourceTexture->AddressX = TextureAddress::TA_Clamp;
 		SourceTexture->AddressY = TextureAddress::TA_Clamp;
 		SourceTexture->UpdateResource();
-
-		UpscaleUpdateRegion = FUpdateTextureRegion2D(0, 0, 0, 0, UpscaleW, UpscaleH);
-		UpscaleTexture = UTexture2D::CreateTransient(UpscaleW, UpscaleH, EPixelFormat::PF_G8);
-		UpscaleTexture->CompressionSettings = TextureCompressionSettings::TC_Grayscale;
-		UpscaleTexture->SRGB = false;
-		UpscaleTexture->Filter = TextureFilter::TF_Nearest;
-		UpscaleTexture->AddressX = TextureAddress::TA_Clamp;
-		UpscaleTexture->AddressY = TextureAddress::TA_Clamp;
-		UpscaleTexture->UpdateResource();
 	}
+
+	// Upscale texture is the one we export to user
+	UpscaleUpdateRegion = FUpdateTextureRegion2D(0, 0, 0, 0, UpscaleW, UpscaleH);
+	UpscaleTexture = UTexture2D::CreateTransient(UpscaleW, UpscaleH, EPixelFormat::PF_G8);
+	UpscaleTexture->CompressionSettings = TextureCompressionSettings::TC_Grayscale;
+	UpscaleTexture->SRGB = false;
+	UpscaleTexture->Filter = TextureFilter::TF_Nearest;
+	UpscaleTexture->AddressX = TextureAddress::TA_Clamp;
+	UpscaleTexture->AddressY = TextureAddress::TA_Clamp;
+	UpscaleTexture->UpdateResource();
 
 	UVaFogController::Get(this)->OnFogLayerAdded(this);
 }
@@ -234,8 +235,9 @@ void UVaFogLayerComponent::TickComponent(float DeltaTime, enum ELevelTick TickTy
 	if (bDebugBuffers)
 	{
 		UpdateTextureFromBuffer(SourceTexture, SourceBuffer, SourceBufferLength, SourceUpdateRegion);
-		UpdateTextureFromBuffer(UpscaleTexture, UpscaleBuffer, UpscaleBufferLength, UpscaleUpdateRegion);
 	}
+
+	UpdateTextureFromBuffer(UpscaleTexture, UpscaleBuffer, UpscaleBufferLength, UpscaleUpdateRegion);
 }
 
 void UVaFogLayerComponent::UpdateAgents()
