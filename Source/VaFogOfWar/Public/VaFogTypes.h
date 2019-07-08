@@ -8,7 +8,7 @@ UENUM(BlueprintType)
 enum class EVaFogLayerChannel : uint8
 {
 	/** "Black" fog of war */
-	World,
+	Permanent,
 	/** "Grey" fog of war */
-	Reconnaissance
+	Scouting
 };

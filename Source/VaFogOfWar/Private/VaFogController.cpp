@@ -49,7 +49,7 @@ void UVaFogController::OnFogLayerAdded(UVaFogLayerComponent* InFogLayer)
 {
 	FogLayers.AddUnique(InFogLayer);
 
-	UE_LOG(LogVaFog, Log, TEXT("[%s] Added: %s"), *VA_FUNC_LINE, *InFogLayer->GetName());
+	UE_LOG(LogVaFog, Log, TEXT("[%s] Added: %s %d"), *VA_FUNC_LINE, *InFogLayer->GetName(), (int32)InFogLayer->LayerChannel);
 }
 
 void UVaFogController::OnFogLayerRemoved(UVaFogLayerComponent* InFogLayer)

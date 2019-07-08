@@ -67,7 +67,7 @@ private:
 
 public:
 	/** Defines which refresh logic will be used: permanent drawing or runtime visible area */
-	UPROPERTY(EditDefaultsOnly, Category = "Fog of War")
+	UPROPERTY(EditAnywhere, Category = "Fog of War")
 	EVaFogLayerChannel LayerChannel;
 
 public:
@@ -103,15 +103,15 @@ private:
 
 protected:
 	/** Show agents vision radius for this layer */
-	UPROPERTY(EditDefaultsOnly, Category = "Debug")
+	UPROPERTY(EditAnywhere, Category = "Debug")
 	bool bDebugAgents;
 
 	/** Color to draw */
-	UPROPERTY(EditDefaultsOnly, Category = "Debug")
+	UPROPERTY(EditAnywhere, Category = "Debug")
 	FColor DebugAgentsColor;
 
 	/** Enable source and upscale buffer to texture drawing */
-	UPROPERTY(EditDefaultsOnly, Category = "Debug")
+	UPROPERTY(EditAnywhere, Category = "Debug")
 	bool bDebugBuffers;
 
 public:

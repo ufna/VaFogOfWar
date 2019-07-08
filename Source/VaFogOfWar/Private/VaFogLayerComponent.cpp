@@ -242,6 +242,12 @@ void UVaFogLayerComponent::TickComponent(float DeltaTime, enum ELevelTick TickTy
 	}
 
 	UpdateTextureFromBuffer(UpscaleTexture, UpscaleBuffer, UpscaleBufferLength, UpscaleUpdateRegion);
+
+	// Cleanup buffer for scouting
+	if (LayerChannel == EVaFogLayerChannel::Scouting)
+	{
+		FMemory::Memzero(SourceBuffer, SourceBufferLength);
+	}
 }
 
 void UVaFogLayerComponent::UpdateAgents()
