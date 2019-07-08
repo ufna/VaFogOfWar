@@ -15,15 +15,6 @@
 AVaFogBoundsVolume::AVaFogBoundsVolume(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	GetBrushComponent()->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
-	GetBrushComponent()->Mobility = EComponentMobility::Static;
-
-	BrushColor = FColor(200, 0, 0, 255);
-	bColored = true;
-
-	CachedFogLayerResolution = 128;
-	LayerToTextureShift = 64;
-
 #if WITH_EDITORONLY_DATA
 	SpriteComponent = CreateEditorOnlyDefaultSubobject<UBillboardComponent>(TEXT("Sprite"));
 
@@ -48,6 +39,15 @@ AVaFogBoundsVolume::AVaFogBoundsVolume(const FObjectInitializer& ObjectInitializ
 		SpriteComponent->bReceivesDecals = false;
 	}
 #endif
+
+	GetBrushComponent()->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
+	GetBrushComponent()->Mobility = EComponentMobility::Static;
+
+	BrushColor = FColor(200, 0, 0, 255);
+	bColored = true;
+
+	CachedFogLayerResolution = 128;
+	LayerToTextureShift = 64;
 }
 
 void AVaFogBoundsVolume::PostInitializeComponents()
