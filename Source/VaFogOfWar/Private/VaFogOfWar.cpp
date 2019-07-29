@@ -34,6 +34,7 @@ void FVaFogOfWarModule::StartupModule()
 	FWorldDelegates::OnPostWorldInitialization.AddLambda([this](UWorld* World, const UWorld::InitializationValues IVS) {
 		auto FogController = NewObject<UVaFogController>(GetTransientPackage());
 		FogController->SetFlags(RF_Standalone);
+		FogController->AddToRoot();
 
 		FogControllers.Add(World, FogController);
 
@@ -54,6 +55,11 @@ void FVaFogOfWarModule::ShutdownModule()
 	{
 		// If we're in exit purge, this object has already been destroyed
 		ModuleSettings->RemoveFromRoot();
+
+		for (auto FogController : FogControllers)
+		{
+			FogController.Value->RemoveFromRoot();
+		}
 	}
 	else
 	{
