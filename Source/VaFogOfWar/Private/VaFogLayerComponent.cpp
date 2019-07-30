@@ -20,6 +20,7 @@
 
 DECLARE_CYCLE_STAT(TEXT("UpdateAgents"), STAT_UpdateAgents, STATGROUP_VaFog);
 DECLARE_CYCLE_STAT(TEXT("UpdateUpscaleBuffer"), STAT_UpdateUpscaleBuffer, STATGROUP_VaFog);
+DECLARE_CYCLE_STAT(TEXT("FetchTexelFromSource"), STAT_FetchTexelFromSource, STATGROUP_VaFog);
 DECLARE_CYCLE_STAT(TEXT("DrawCircle"), STAT_DrawCircle, STATGROUP_VaFog);
 DECLARE_CYCLE_STAT(TEXT("Plot4Points"), STAT_Plot4Points, STATGROUP_VaFog);
 DECLARE_CYCLE_STAT(TEXT("DrawHorizontalLine"), STAT_DrawHorizontalLine, STATGROUP_VaFog);
@@ -283,13 +284,16 @@ void UVaFogLayerComponent::UpdateUpscaleBuffer()
 {
 	SCOPE_CYCLE_COUNTER(STAT_UpdateUpscaleBuffer);
 
+	FFogTexel2x2 SourceTexel;
+	FFogTexel4x4 UpscaleTexel;
+
 	for (int32 x = 0; x < SourceW; ++x)
 	{
 		for (int32 y = 0; y < SourceH; ++y)
 		{
 			// Fetch original texture pixel and its neighbors
-			FFogTexel2x2 SourceTexel = FetchTexelFromSource(x, y);
-			FFogTexel4x4 UpscaleTexel = UpscaleTemplate.at(SourceTexel);
+			SourceTexel = FetchTexelFromSource(x, y);
+			UpscaleTexel = UpscaleTemplate.at(SourceTexel);
 
 			// Apply texel to upscale buffer based on template
 			for (int32 i = 0; i < 4; ++i)
@@ -360,6 +364,8 @@ void UVaFogLayerComponent::DrawHorizontalLine(int32 x0, int32 y0, int32 x1)
 
 FFogTexel2x2 UVaFogLayerComponent::FetchTexelFromSource(int32 W, int32 H)
 {
+	//SCOPE_CYCLE_COUNTER(STAT_FetchTexelFromSource);
+
 	// Clamp neighbor coords if necessary
 	int32 NeighborW = FMath::Min(W + 1, SourceW - 1);
 	int32 NeighborH = FMath::Min(H + 1, SourceH - 1);
