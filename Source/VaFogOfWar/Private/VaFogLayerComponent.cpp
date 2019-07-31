@@ -346,7 +346,9 @@ void UVaFogLayerComponent::Plot4Points(int32 CenterX, int32 CenterY, int32 X, in
 	DrawHorizontalLine(CenterX - X, CenterY + Y, CenterX + X);
 
 	if (Y != 0)
+	{
 		DrawHorizontalLine(CenterX - X, CenterY - Y, CenterX + X);
+	}
 }
 
 void UVaFogLayerComponent::DrawHorizontalLine(int32 x0, int32 y0, int32 x1)
