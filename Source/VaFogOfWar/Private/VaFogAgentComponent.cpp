@@ -12,7 +12,7 @@ UVaFogAgentComponent::UVaFogAgentComponent(const FObjectInitializer& ObjectIniti
 {
 	bAutoActivate = true;
 	bWantsInitializeComponent = true;
-	InteractionType = EVaFogAgentType::Dispell;
+	InteractionType = EVaFogAgentType::Dispel;
 
 	VisionRadius = 500;
 

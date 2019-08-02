@@ -427,7 +427,7 @@ void UVaFogLayerComponent::AddFogAgent(UVaFogAgentComponent* InFogAgent)
 {
 	switch (InFogAgent->InteractionType)
 	{
-	case EVaFogAgentType::Dispell:
+	case EVaFogAgentType::Dispel:
 		FogAgents.AddUnique(InFogAgent);
 		break;
 
@@ -447,7 +447,7 @@ void UVaFogLayerComponent::RemoveFogAgent(UVaFogAgentComponent* InFogAgent)
 
 	switch (InFogAgent->InteractionType)
 	{
-	case EVaFogAgentType::Dispell:
+	case EVaFogAgentType::Dispel:
 		NumRemoved = FogAgents.Remove(InFogAgent);
 		break;
 

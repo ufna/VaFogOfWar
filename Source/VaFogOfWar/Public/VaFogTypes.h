@@ -17,7 +17,7 @@ UENUM(BlueprintType)
 enum class EVaFogAgentType : uint8
 {
 	/** Fog dispeller (scout) */
-	Dispell,
+	Dispel,
 	/** Visibility blocker */
 	Obstacle
 };
