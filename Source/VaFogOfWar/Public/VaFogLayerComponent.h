@@ -13,6 +13,7 @@ class UTexture2D;
 class UMaterialInterface;
 struct FUpdateTextureRegion2D;
 
+class AVaFogBoundsVolume;
 class UVaFogAgentComponent;
 
 struct FFogTexel2x2
@@ -53,14 +54,17 @@ protected:
 	/** Process agents info and update FoW map */
 	void UpdateAgents();
 
+	/** Single agent update process */
+	void UpdateAgent(UVaFogAgentComponent* FogAgent, AVaFogBoundsVolume* FogVolume);
+
 	/** Process manual upscaling from 128 to 512 */
 	void UpdateUpscaleBuffer();
 
 private:
 	/** Rasterize circle with Bresenham's Midpoint circle algorithm, see https://en.wikipedia.org/wiki/Midpoint_circle_algorithm */
-	void DrawCircle(int32 CenterX, int32 CenterY, int32 Radius);
-	void Plot4Points(int32 CenterX, int32 CenterY, int32 X, int32 Y);
-	void DrawHorizontalLine(int32 x0, int32 y0, int32 x1);
+	void DrawCircle(uint8* TargetBuffer, int32 CenterX, int32 CenterY, int32 Radius);
+	void Plot4Points(uint8* TargetBuffer, int32 CenterX, int32 CenterY, int32 X, int32 Y);
+	void DrawHorizontalLine(uint8* TargetBuffer, int32 x0, int32 y0, int32 x1);
 
 	/** Read pixel with desired position and constuct texel based on its neighbors */
 	FFogTexel2x2 FetchTexelFromSource(int32 W, int32 H);

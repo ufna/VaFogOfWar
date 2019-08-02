@@ -287,27 +287,36 @@ void UVaFogLayerComponent::UpdateAgents()
 	SCOPE_CYCLE_COUNTER(STAT_UpdateAgents);
 
 	auto FogVolume = UVaFogController::Get(this)->GetFogVolume();
-
 	for (auto FogAgent : FogAgents)
 	{
-		FIntPoint AgentLocation = FogVolume->TransformWorldToLayer(FogAgent->GetOwner()->GetActorLocation());
-		//UE_LOG(LogVaFog, Warning, TEXT("[%s] Agent [%s] location: %s"), *VA_FUNC_LINE, *FogAgent->GetName(), *AgentLocation.ToString());
+		UpdateAgent(FogAgent, FogVolume);
+	}
+}
 
-		if (bDebugAgents)
-		{
-			DrawDebugSphere(GetWorld(), FogAgent->GetOwner()->GetActorLocation(), FogAgent->VisionRadius, 32, DebugAgentsColor, false, 0.0f);
-		}
+void UVaFogLayerComponent::UpdateAgent(UVaFogAgentComponent* FogAgent, AVaFogBoundsVolume* FogVolume)
+{
+	check(FogAgent);
+	check(FogVolume);
 
-		check(FogAgent->VisionRadius >= 0);
-		if (FogAgent->VisionRadius == 0)
-		{
-			check(AgentLocation.X >= 0 && AgentLocation.X < SourceW && AgentLocation.Y >= 0 && AgentLocation.Y < SourceH);
-			SourceBuffer[AgentLocation.Y * SourceW + AgentLocation.X] = 0xFF;
-		}
-		else
-		{
-			DrawCircle(AgentLocation.X, AgentLocation.Y, FogVolume->ScaleDistanceToLayer(FogAgent->VisionRadius));
-		}
+	uint8* TargetBuffer = (FogAgent->InteractionType == EVaFogAgentType::Dispell) ? SourceBuffer : ObstaclesBuffer;
+
+	FIntPoint AgentLocation = FogVolume->TransformWorldToLayer(FogAgent->GetOwner()->GetActorLocation());
+	//UE_LOG(LogVaFog, Warning, TEXT("[%s] Agent [%s] location: %s"), *VA_FUNC_LINE, *FogAgent->GetName(), *AgentLocation.ToString());
+
+	if (bDebugAgents)
+	{
+		DrawDebugSphere(GetWorld(), FogAgent->GetOwner()->GetActorLocation(), FogAgent->VisionRadius, 32, DebugAgentsColor, false, 0.0f);
+	}
+
+	check(FogAgent->VisionRadius >= 0);
+	if (FogAgent->VisionRadius == 0)
+	{
+		check(AgentLocation.X >= 0 && AgentLocation.X < SourceW && AgentLocation.Y >= 0 && AgentLocation.Y < SourceH);
+		TargetBuffer[AgentLocation.Y * SourceW + AgentLocation.X] = 0xFF;
+	}
+	else
+	{
+		DrawCircle(TargetBuffer, AgentLocation.X, AgentLocation.Y, FogVolume->ScaleDistanceToLayer(FogAgent->VisionRadius));
 	}
 }
 
@@ -335,7 +344,7 @@ void UVaFogLayerComponent::UpdateUpscaleBuffer()
 	}
 }
 
-void UVaFogLayerComponent::DrawCircle(int32 CenterX, int32 CenterY, int32 Radius)
+void UVaFogLayerComponent::DrawCircle(uint8* TargetBuffer, int32 CenterX, int32 CenterY, int32 Radius)
 {
 	SCOPE_CYCLE_COUNTER(STAT_DrawCircle);
 
@@ -356,12 +365,12 @@ void UVaFogLayerComponent::DrawCircle(int32 CenterX, int32 CenterY, int32 Radius
 		++Y;
 		RadiusError += Y;
 
-		Plot4Points(CenterX, CenterY, X, lastY);
+		Plot4Points(TargetBuffer, CenterX, CenterY, X, lastY);
 
 		if (RadiusError >= 0)
 		{
 			if (X != lastY)
-				Plot4Points(CenterX, CenterY, lastY, X);
+				Plot4Points(TargetBuffer, CenterX, CenterY, lastY, X);
 
 			RadiusError -= X;
 			--X;
@@ -370,19 +379,19 @@ void UVaFogLayerComponent::DrawCircle(int32 CenterX, int32 CenterY, int32 Radius
 	}
 }
 
-void UVaFogLayerComponent::Plot4Points(int32 CenterX, int32 CenterY, int32 X, int32 Y)
+void UVaFogLayerComponent::Plot4Points(uint8* TargetBuffer, int32 CenterX, int32 CenterY, int32 X, int32 Y)
 {
 	SCOPE_CYCLE_COUNTER(STAT_Plot4Points);
 
-	DrawHorizontalLine(CenterX - X, CenterY + Y, CenterX + X);
+	DrawHorizontalLine(TargetBuffer, CenterX - X, CenterY + Y, CenterX + X);
 
 	if (Y != 0)
 	{
-		DrawHorizontalLine(CenterX - X, CenterY - Y, CenterX + X);
+		DrawHorizontalLine(TargetBuffer, CenterX - X, CenterY - Y, CenterX + X);
 	}
 }
 
-void UVaFogLayerComponent::DrawHorizontalLine(int32 x0, int32 y0, int32 x1)
+void UVaFogLayerComponent::DrawHorizontalLine(uint8* TargetBuffer, int32 x0, int32 y0, int32 x1)
 {
 	if (y0 < 0 || y0 >= SourceH || x0 >= SourceW || x1 < 0)
 		return;
@@ -392,7 +401,7 @@ void UVaFogLayerComponent::DrawHorizontalLine(int32 x0, int32 y0, int32 x1)
 	int32 x0opt = FMath::Max(x0, 0);
 	int32 x1opt = FMath::Clamp(x1, x0opt, SourceW - 1);
 
-	FMemory::Memset(&SourceBuffer[y0 * SourceW + x0opt], 0xFF, x1opt - x0opt + 1);
+	FMemory::Memset(&TargetBuffer[y0 * SourceW + x0opt], 0xFF, x1opt - x0opt + 1);
 }
 
 FFogTexel2x2 UVaFogLayerComponent::FetchTexelFromSource(int32 W, int32 H)
@@ -422,6 +431,7 @@ void UVaFogLayerComponent::AddFogAgent(UVaFogAgentComponent* InFogAgent)
 
 	case EVaFogAgentType::Obstacle:
 		ObstacleAgents.AddUnique(InFogAgent);
+		UpdateAgent(InFogAgent, UVaFogController::Get(this)->GetFogVolume());
 		break;
 
 	default:
@@ -441,6 +451,7 @@ void UVaFogLayerComponent::RemoveFogAgent(UVaFogAgentComponent* InFogAgent)
 
 	case EVaFogAgentType::Obstacle:
 		NumRemoved = ObstacleAgents.Remove(InFogAgent);
+		UpdateAgent(InFogAgent, UVaFogController::Get(this)->GetFogVolume());
 		break;
 
 	default:
