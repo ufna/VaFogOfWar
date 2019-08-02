@@ -412,14 +412,41 @@ FFogTexel2x2 UVaFogLayerComponent::FetchTexelFromSource(int32 W, int32 H)
 	return Texel;
 }
 
-void UVaFogLayerComponent::AddFogAgent(UVaFogAgentComponent* FogAgent)
+void UVaFogLayerComponent::AddFogAgent(UVaFogAgentComponent* InFogAgent)
 {
-	FogAgents.AddUnique(FogAgent);
+	switch (InFogAgent->InteractionType)
+	{
+	case EVaFogAgentType::Dispell:
+		FogAgents.AddUnique(InFogAgent);
+		break;
+
+	case EVaFogAgentType::Obstacle:
+		ObstacleAgents.AddUnique(InFogAgent);
+		break;
+
+	default:
+		unimplemented();
+	}
 }
 
 void UVaFogLayerComponent::RemoveFogAgent(UVaFogAgentComponent* InFogAgent)
 {
-	int32 NumRemoved = FogAgents.Remove(InFogAgent);
+	int32 NumRemoved = 0;
+
+	switch (InFogAgent->InteractionType)
+	{
+	case EVaFogAgentType::Dispell:
+		NumRemoved = FogAgents.Remove(InFogAgent);
+		break;
+
+	case EVaFogAgentType::Obstacle:
+		NumRemoved = ObstacleAgents.Remove(InFogAgent);
+		break;
+
+	default:
+		unimplemented();
+	}
+
 	if (NumRemoved == 0)
 	{
 		UE_LOG(LogVaFog, Error, TEXT("[%s] No cached data found for: %s"), *VA_FUNC_LINE, *InFogAgent->GetName());

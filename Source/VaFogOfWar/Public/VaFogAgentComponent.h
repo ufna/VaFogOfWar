@@ -22,6 +22,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	EVaFogLayerChannel TargetChannel;
 
+	/** Type of fog channel interaction  */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	EVaFogAgentType InteractionType;
+
 	/** Agent vision radius in cm (set 0 to use single cell vision) */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	int32 VisionRadius;

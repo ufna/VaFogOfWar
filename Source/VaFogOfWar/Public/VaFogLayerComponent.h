@@ -79,6 +79,10 @@ protected:
 	UPROPERTY()
 	TArray<UVaFogAgentComponent*> FogAgents;
 
+	/** Registered fog obstacle agents for layer */
+	UPROPERTY()
+	TArray<UVaFogAgentComponent*> ObstacleAgents;
+
 private:
 	/** Original layer texture on CPU */
 	uint8* SourceBuffer;
