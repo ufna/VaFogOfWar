@@ -54,8 +54,8 @@ protected:
 	/** Process agents info and update FoW map */
 	void UpdateAgents();
 
-	/** Single agent update process */
-	void UpdateAgent(UVaFogAgentComponent* FogAgent, AVaFogBoundsVolume* FogVolume);
+	/** Update single obstacle agent as event-based process */
+	void UpdateObstacle(UVaFogAgentComponent* FogAgent, AVaFogBoundsVolume* FogVolume);
 
 	/** Process manual upscaling from 128 to 512 */
 	void UpdateUpscaleBuffer();

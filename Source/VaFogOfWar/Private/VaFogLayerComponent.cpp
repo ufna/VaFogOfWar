@@ -289,35 +289,37 @@ void UVaFogLayerComponent::UpdateAgents()
 	auto FogVolume = UVaFogController::Get(this)->GetFogVolume();
 	for (auto FogAgent : FogAgents)
 	{
-		UpdateAgent(FogAgent, FogVolume);
+		FIntPoint AgentLocation = FogVolume->TransformWorldToLayer(FogAgent->GetComponentTransform().GetLocation());
+		//UE_LOG(LogVaFog, Warning, TEXT("[%s] Agent [%s] location: %s"), *VA_FUNC_LINE, *FogAgent->GetName(), *AgentLocation.ToString());
+
+		if (bDebugAgents)
+		{
+			DrawDebugSphere(GetWorld(), FogAgent->GetComponentTransform().GetLocation(), FogAgent->VisionRadius, 32, DebugAgentsColor, false, 0.0f);
+		}
+
+		check(FogAgent->VisionRadius >= 0);
+		if (FogAgent->VisionRadius == 0)
+		{
+			check(AgentLocation.X >= 0 && AgentLocation.X < SourceW && AgentLocation.Y >= 0 && AgentLocation.Y < SourceH);
+			SourceBuffer[AgentLocation.Y * SourceW + AgentLocation.X] = 0xFF;
+		}
+		else
+		{
+			DrawCircle(SourceBuffer, AgentLocation.X, AgentLocation.Y, FogVolume->ScaleDistanceToLayer(FogAgent->VisionRadius));
+		}
 	}
 }
 
-void UVaFogLayerComponent::UpdateAgent(UVaFogAgentComponent* FogAgent, AVaFogBoundsVolume* FogVolume)
+void UVaFogLayerComponent::UpdateObstacle(UVaFogAgentComponent* FogAgent, AVaFogBoundsVolume* FogVolume)
 {
 	check(FogAgent);
 	check(FogVolume);
 
-	uint8* TargetBuffer = (FogAgent->InteractionType == EVaFogAgentType::Dispell) ? SourceBuffer : ObstaclesBuffer;
-
 	FIntPoint AgentLocation = FogVolume->TransformWorldToLayer(FogAgent->GetOwner()->GetActorLocation());
-	//UE_LOG(LogVaFog, Warning, TEXT("[%s] Agent [%s] location: %s"), *VA_FUNC_LINE, *FogAgent->GetName(), *AgentLocation.ToString());
 
-	if (bDebugAgents)
-	{
-		DrawDebugSphere(GetWorld(), FogAgent->GetOwner()->GetActorLocation(), FogAgent->VisionRadius, 32, DebugAgentsColor, false, 0.0f);
-	}
-
-	check(FogAgent->VisionRadius >= 0);
-	if (FogAgent->VisionRadius == 0)
-	{
-		check(AgentLocation.X >= 0 && AgentLocation.X < SourceW && AgentLocation.Y >= 0 && AgentLocation.Y < SourceH);
-		TargetBuffer[AgentLocation.Y * SourceW + AgentLocation.X] = 0xFF;
-	}
-	else
-	{
-		DrawCircle(TargetBuffer, AgentLocation.X, AgentLocation.Y, FogVolume->ScaleDistanceToLayer(FogAgent->VisionRadius));
-	}
+	// Every obstacle updates single cell only
+	check(AgentLocation.X >= 0 && AgentLocation.X < SourceW && AgentLocation.Y >= 0 && AgentLocation.Y < SourceH);
+	ObstaclesBuffer[AgentLocation.Y * SourceW + AgentLocation.X] = 0xFF;
 }
 
 void UVaFogLayerComponent::UpdateUpscaleBuffer()
@@ -431,7 +433,7 @@ void UVaFogLayerComponent::AddFogAgent(UVaFogAgentComponent* InFogAgent)
 
 	case EVaFogAgentType::Obstacle:
 		ObstacleAgents.AddUnique(InFogAgent);
-		UpdateAgent(InFogAgent, UVaFogController::Get(this)->GetFogVolume());
+		UpdateObstacle(InFogAgent, UVaFogController::Get(this)->GetFogVolume());
 		break;
 
 	default:
@@ -451,7 +453,7 @@ void UVaFogLayerComponent::RemoveFogAgent(UVaFogAgentComponent* InFogAgent)
 
 	case EVaFogAgentType::Obstacle:
 		NumRemoved = ObstacleAgents.Remove(InFogAgent);
-		UpdateAgent(InFogAgent, UVaFogController::Get(this)->GetFogVolume());
+		// @TODO UpdateObstacle(InFogAgent, UVaFogController::Get(this)->GetFogVolume());
 		break;
 
 	default:
