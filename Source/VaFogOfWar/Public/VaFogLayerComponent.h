@@ -55,7 +55,7 @@ protected:
 	void UpdateAgents();
 
 	/** Update single obstacle agent as event-based process */
-	void UpdateObstacle(UVaFogAgentComponent* FogAgent, AVaFogBoundsVolume* FogVolume);
+	void UpdateObstacle(UVaFogAgentComponent* FogAgent, bool bObstacleIsActive, AVaFogBoundsVolume* FogVolume);
 
 	/** Process manual upscaling from 128 to 512 */
 	void UpdateUpscaleBuffer();

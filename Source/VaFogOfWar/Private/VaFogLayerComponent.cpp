@@ -310,7 +310,7 @@ void UVaFogLayerComponent::UpdateAgents()
 	}
 }
 
-void UVaFogLayerComponent::UpdateObstacle(UVaFogAgentComponent* FogAgent, AVaFogBoundsVolume* FogVolume)
+void UVaFogLayerComponent::UpdateObstacle(UVaFogAgentComponent* FogAgent, bool bObstacleIsActive, AVaFogBoundsVolume* FogVolume)
 {
 	check(FogAgent);
 	check(FogVolume);
@@ -319,7 +319,7 @@ void UVaFogLayerComponent::UpdateObstacle(UVaFogAgentComponent* FogAgent, AVaFog
 
 	// Every obstacle updates single cell only
 	check(AgentLocation.X >= 0 && AgentLocation.X < SourceW && AgentLocation.Y >= 0 && AgentLocation.Y < SourceH);
-	ObstaclesBuffer[AgentLocation.Y * SourceW + AgentLocation.X] = 0xFF;
+	ObstaclesBuffer[AgentLocation.Y * SourceW + AgentLocation.X] = (bObstacleIsActive) ? 0xFF : 0x00;
 }
 
 void UVaFogLayerComponent::UpdateUpscaleBuffer()
@@ -433,7 +433,7 @@ void UVaFogLayerComponent::AddFogAgent(UVaFogAgentComponent* InFogAgent)
 
 	case EVaFogAgentType::Obstacle:
 		ObstacleAgents.AddUnique(InFogAgent);
-		UpdateObstacle(InFogAgent, UVaFogController::Get(this)->GetFogVolume());
+		UpdateObstacle(InFogAgent, true, UVaFogController::Get(this)->GetFogVolume());
 		break;
 
 	default:
@@ -453,7 +453,7 @@ void UVaFogLayerComponent::RemoveFogAgent(UVaFogAgentComponent* InFogAgent)
 
 	case EVaFogAgentType::Obstacle:
 		NumRemoved = ObstacleAgents.Remove(InFogAgent);
-		// @TODO UpdateObstacle(InFogAgent, UVaFogController::Get(this)->GetFogVolume());
+		UpdateObstacle(InFogAgent, false, UVaFogController::Get(this)->GetFogVolume());
 		break;
 
 	default:
