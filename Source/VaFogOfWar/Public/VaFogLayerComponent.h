@@ -83,6 +83,9 @@ private:
 	/** Original layer texture on CPU */
 	uint8* SourceBuffer;
 
+	/** Separate buffer used to track obstacles map (same size as source buffer) */
+	uint8* ObstaclesBuffer;
+
 	/** Upscaled layer texture on CPU */
 	uint8* UpscaleBuffer;
 
@@ -103,21 +106,25 @@ private:
 
 protected:
 	/** Show agents vision radius for this layer */
-	UPROPERTY(EditAnywhere, Category = "Debug")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Debug")
 	bool bDebugAgents;
 
 	/** Color to draw */
-	UPROPERTY(EditAnywhere, Category = "Debug")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Debug")
 	FColor DebugAgentsColor;
 
 	/** Enable source and upscale buffer to texture drawing */
-	UPROPERTY(EditAnywhere, Category = "Debug")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Debug")
 	bool bDebugBuffers;
 
 public:
-	/** Low-res FoW source buffer as image (check bDebugSourceTexture) */
+	/** Low-res FoW source buffer as image (check bDebugBuffers) */
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Fog of War")
 	UTexture2D* SourceTexture;
+
+	/** Low-res FoW obstacles buffer as image (check bDebugBuffers) */
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Fog of War")
+	UTexture2D* ObstaclesTexture;
 
 	/** Upscaled FoW buffer as image (check bDebugUpscaleTexture) */
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Fog of War")

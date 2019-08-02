@@ -132,6 +132,7 @@ UVaFogLayerComponent::UVaFogLayerComponent(const FObjectInitializer& ObjectIniti
 	PrimaryComponentTick.TickGroup = TG_DuringPhysics;
 
 	SourceBuffer = nullptr;
+	ObstaclesBuffer = nullptr;
 	UpscaleBuffer = nullptr;
 
 	SourceW = 0;
@@ -172,6 +173,10 @@ void UVaFogLayerComponent::InitializeComponent()
 	UpscaleBufferLength = UpscaleW * UpscaleH * sizeof(uint8);
 	FMemory::Memzero(UpscaleBuffer, UpscaleBufferLength);
 
+	// Fillup Obstacles buffer
+	ObstaclesBuffer = new uint8[UpscaleBufferLength];
+	FMemory::Memzero(ObstaclesBuffer, UpscaleBufferLength);
+
 	// Prepare debug textures if required
 	if (bDebugBuffers)
 	{
@@ -182,7 +187,19 @@ void UVaFogLayerComponent::InitializeComponent()
 		SourceTexture->Filter = TextureFilter::TF_Nearest;
 		SourceTexture->AddressX = TextureAddress::TA_Clamp;
 		SourceTexture->AddressY = TextureAddress::TA_Clamp;
+		SourceTexture->CompressionNone = true;
+		SourceTexture->MipGenSettings = TMGS_NoMipmaps;
 		SourceTexture->UpdateResource();
+
+		ObstaclesTexture = UTexture2D::CreateTransient(SourceW, SourceH, EPixelFormat::PF_G8);
+		ObstaclesTexture->CompressionSettings = TextureCompressionSettings::TC_Grayscale;
+		ObstaclesTexture->SRGB = false;
+		ObstaclesTexture->Filter = TextureFilter::TF_Nearest;
+		ObstaclesTexture->AddressX = TextureAddress::TA_Clamp;
+		ObstaclesTexture->AddressY = TextureAddress::TA_Clamp;
+		ObstaclesTexture->CompressionNone = true;
+		ObstaclesTexture->MipGenSettings = TMGS_NoMipmaps;
+		ObstaclesTexture->UpdateResource();
 	}
 
 	// Upscale texture is the one we export to user
@@ -193,6 +210,8 @@ void UVaFogLayerComponent::InitializeComponent()
 	UpscaleTexture->Filter = TextureFilter::TF_Nearest;
 	UpscaleTexture->AddressX = TextureAddress::TA_Clamp;
 	UpscaleTexture->AddressY = TextureAddress::TA_Clamp;
+	UpscaleTexture->CompressionNone = true;
+	UpscaleTexture->MipGenSettings = TMGS_NoMipmaps;
 	UpscaleTexture->UpdateResource();
 
 	UVaFogController::Get(this)->OnFogLayerAdded(this);
@@ -208,6 +227,12 @@ void UVaFogLayerComponent::UninitializeComponent()
 		SourceBuffer = nullptr;
 	}
 
+	if (ObstaclesBuffer)
+	{
+		delete[] ObstaclesBuffer;
+		ObstaclesBuffer = nullptr;
+	}
+
 	if (UpscaleBuffer)
 	{
 		delete[] UpscaleBuffer;
@@ -217,6 +242,11 @@ void UVaFogLayerComponent::UninitializeComponent()
 	if (SourceTexture)
 	{
 		SourceTexture = nullptr;
+	}
+
+	if (ObstaclesTexture)
+	{
+		ObstaclesTexture = nullptr;
 	}
 
 	if (UpscaleTexture)
@@ -240,6 +270,7 @@ void UVaFogLayerComponent::TickComponent(float DeltaTime, enum ELevelTick TickTy
 	if (bDebugBuffers)
 	{
 		UpdateTextureFromBuffer(SourceTexture, SourceBuffer, SourceBufferLength, SourceUpdateRegion);
+		UpdateTextureFromBuffer(ObstaclesTexture, ObstaclesBuffer, SourceBufferLength, SourceUpdateRegion);
 	}
 
 	UpdateTextureFromBuffer(UpscaleTexture, UpscaleBuffer, UpscaleBufferLength, UpscaleUpdateRegion);
