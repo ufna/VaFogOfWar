@@ -61,6 +61,9 @@ protected:
 	void UpdateUpscaleBuffer();
 
 private:
+	/** Draw circle shaded with obstacles: http://www.adammil.net/blog/v125_Roguelike_Vision_Algorithms.html */
+	void DrawVisionCircle(int32 CenterX, int32 CenterY, int32 Radius);
+
 	/** Rasterize circle with Bresenham's Midpoint circle algorithm, see https://en.wikipedia.org/wiki/Midpoint_circle_algorithm */
 	void DrawCircle(uint8* TargetBuffer, int32 CenterX, int32 CenterY, int32 Radius);
 	void Plot4Points(uint8* TargetBuffer, int32 CenterX, int32 CenterY, int32 X, int32 Y);

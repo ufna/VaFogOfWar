@@ -21,6 +21,7 @@
 DECLARE_CYCLE_STAT(TEXT("UpdateAgents"), STAT_UpdateAgents, STATGROUP_VaFog);
 DECLARE_CYCLE_STAT(TEXT("UpdateUpscaleBuffer"), STAT_UpdateUpscaleBuffer, STATGROUP_VaFog);
 DECLARE_CYCLE_STAT(TEXT("FetchTexelFromSource"), STAT_FetchTexelFromSource, STATGROUP_VaFog);
+DECLARE_CYCLE_STAT(TEXT("DrawVisionCircle"), STAT_DrawVisionCircle, STATGROUP_VaFog);
 DECLARE_CYCLE_STAT(TEXT("DrawCircle"), STAT_DrawCircle, STATGROUP_VaFog);
 DECLARE_CYCLE_STAT(TEXT("Plot4Points"), STAT_Plot4Points, STATGROUP_VaFog);
 DECLARE_CYCLE_STAT(TEXT("DrawHorizontalLine"), STAT_DrawHorizontalLine, STATGROUP_VaFog);
@@ -344,6 +345,16 @@ void UVaFogLayerComponent::UpdateUpscaleBuffer()
 			}
 		}
 	}
+}
+
+/**
+ * http://www.adammil.net/blog/v125_Roguelike_Vision_Algorithms.html/
+ */
+void UVaFogLayerComponent::DrawVisionCircle(int32 CenterX, int32 CenterY, int32 Radius)
+{
+	SCOPE_CYCLE_COUNTER(STAT_DrawVisionCircle);
+
+
 }
 
 void UVaFogLayerComponent::DrawCircle(uint8* TargetBuffer, int32 CenterX, int32 CenterY, int32 Radius)
