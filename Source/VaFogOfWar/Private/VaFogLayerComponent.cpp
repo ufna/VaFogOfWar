@@ -17,6 +17,7 @@
 
 #include <functional>
 #include <unordered_map>
+#include <vector>
 
 DECLARE_CYCLE_STAT(TEXT("UpdateAgents"), STAT_UpdateAgents, STATGROUP_VaFog);
 DECLARE_CYCLE_STAT(TEXT("UpdateUpscaleBuffer"), STAT_UpdateUpscaleBuffer, STATGROUP_VaFog);
@@ -122,6 +123,17 @@ static const std::unordered_map<FFogTexel2x2, FFogTexel4x4> UpscaleTemplate = {{
 											{0xFF, 0xFF, 0xFF, 0xFF}, 
 											{0xFF, 0xFF, 0xFF, 0xFF}	}}	},
 }};
+
+static const std::vector<FFogOctantTransform> OctantTransforms = {
+	{ 1,  0,  0,  1 },
+	{ 1,  0,  0, -1 },
+	{-1,  0,  0,  1 },
+	{-1,  0,  0, -1 },
+	{ 0,  1,  1,  0 },
+	{ 0,  1, -1,  0 },
+	{ 0, -1,  1,  0 },
+	{ 0, -1, -1,  0 }
+};
 // clang-format on
 
 UVaFogLayerComponent::UVaFogLayerComponent(const FObjectInitializer& ObjectInitializer)
@@ -188,8 +200,6 @@ void UVaFogLayerComponent::InitializeComponent()
 		SourceTexture->Filter = TextureFilter::TF_Nearest;
 		SourceTexture->AddressX = TextureAddress::TA_Clamp;
 		SourceTexture->AddressY = TextureAddress::TA_Clamp;
-		SourceTexture->CompressionNone = true;
-		SourceTexture->MipGenSettings = TMGS_NoMipmaps;
 		SourceTexture->UpdateResource();
 
 		ObstaclesTexture = UTexture2D::CreateTransient(SourceW, SourceH, EPixelFormat::PF_G8);
@@ -198,8 +208,6 @@ void UVaFogLayerComponent::InitializeComponent()
 		ObstaclesTexture->Filter = TextureFilter::TF_Nearest;
 		ObstaclesTexture->AddressX = TextureAddress::TA_Clamp;
 		ObstaclesTexture->AddressY = TextureAddress::TA_Clamp;
-		ObstaclesTexture->CompressionNone = true;
-		ObstaclesTexture->MipGenSettings = TMGS_NoMipmaps;
 		ObstaclesTexture->UpdateResource();
 	}
 
@@ -211,8 +219,6 @@ void UVaFogLayerComponent::InitializeComponent()
 	UpscaleTexture->Filter = TextureFilter::TF_Nearest;
 	UpscaleTexture->AddressX = TextureAddress::TA_Clamp;
 	UpscaleTexture->AddressY = TextureAddress::TA_Clamp;
-	UpscaleTexture->CompressionNone = true;
-	UpscaleTexture->MipGenSettings = TMGS_NoMipmaps;
 	UpscaleTexture->UpdateResource();
 
 	UVaFogController::Get(this)->OnFogLayerAdded(this);
@@ -354,7 +360,9 @@ void UVaFogLayerComponent::DrawVisionCircle(int32 CenterX, int32 CenterY, int32 
 {
 	SCOPE_CYCLE_COUNTER(STAT_DrawVisionCircle);
 
-
+	// Shadow casting (point-to-tile or point-to-point)
+	// Pros: Fast. Expanding pillar shadows. Expansive walls. Continuous point visibility.
+	// Cons: Diagonal vision much narrower than cardinal. Blind corners. Beam expands too much through a door. Asymmetrical. Nontrivial to eliminate all artifacts.
 }
 
 void UVaFogLayerComponent::DrawCircle(uint8* TargetBuffer, int32 CenterX, int32 CenterY, int32 Radius)

@@ -40,6 +40,19 @@ struct FFogTexel4x4
 	uint8 pixels[4][4];
 };
 
+struct FFogOctantTransform
+{
+	int8 xx, xy, yx, yy;
+
+	bool operator==(const FFogOctantTransform& p) const
+	{
+		return xx == p.xx &&
+			   xy == p.xy &&
+			   yx == p.yx &&
+			   yy == p.yy;
+	}
+};
+
 UCLASS(ClassGroup = (VAFogOfWar), editinlinenew, meta = (BlueprintSpawnableComponent))
 class VAFOGOFWAR_API UVaFogLayerComponent : public UActorComponent
 {
