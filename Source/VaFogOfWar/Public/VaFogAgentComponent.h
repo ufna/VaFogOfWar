@@ -31,6 +31,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	EVaFogAgentType InteractionType;
 
+	/** Radius strategy used for fog interaction 
+	 * @TODO Make radius strategies configurable https://github.com/ufna/VaFogOfWar/issues/58 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	EVaFogRadiusStrategy RadiusStrategy;
+
 	/** Agent vision radius in cm (set 0 to use single cell vision) */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	int32 VisionRadius;

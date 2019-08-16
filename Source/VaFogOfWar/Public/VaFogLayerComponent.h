@@ -4,6 +4,8 @@
 
 #include "VaFogTypes.h"
 
+#include "VaFogRadiusStrategy.h"
+
 #include "Components/ActorComponent.h"
 
 #include "VaFogLayerComponent.generated.h"
@@ -75,7 +77,16 @@ protected:
 
 private:
 	/** Draw circle shaded with obstacles: http://www.adammil.net/blog/v125_Roguelike_Vision_Algorithms.html */
-	void DrawVisionCircle(int32 CenterX, int32 CenterY, int32 Radius);
+	void DrawVisionCircle(uint8* TargetBuffer, int32 CenterX, int32 CenterY, int32 Radius);
+
+	/** Based on Shadowcasting algorithm from SquidLib by Eben Howard, http://www.roguebasin.com/index.php?title=Improved_Shadowcasting_in_Java */
+	void DrawFieldOfView(uint8* TargetBuffer, int32 CenterX, int32 CenterY, int32 Radius, int32 Y, float Start, float End, FFogOctantTransform Transform);
+
+	/** Set desired point as visible in TargetBuffer */
+	void Reveal(uint8* TargetBuffer, int32 X, int32 Y);
+
+	/** Check obstacle buffer in desired point */
+	bool IsBlocked(int32 X, int32 Y);
 
 	/** Rasterize circle with Bresenham's Midpoint circle algorithm, see https://en.wikipedia.org/wiki/Midpoint_circle_algorithm */
 	void DrawCircle(uint8* TargetBuffer, int32 CenterX, int32 CenterY, int32 Radius);
@@ -102,6 +113,9 @@ protected:
 	/** Registered fog obstacle agents for layer */
 	UPROPERTY()
 	TArray<UVaFogAgentComponent*> ObstacleAgents;
+
+	/** Radius strategy instances */
+	TMap<EVaFogRadiusStrategy, FVaFogRadiusStrategyRef> RadiusStrategies;
 
 private:
 	/** Original layer texture on CPU */

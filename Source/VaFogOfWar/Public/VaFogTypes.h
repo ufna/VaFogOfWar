@@ -21,3 +21,11 @@ enum class EVaFogAgentType : uint8
 	/** Visibility blocker */
 	Obstacle
 };
+
+UENUM(BlueprintType)
+enum class EVaFogRadiusStrategy : uint8
+{
+	Circle,
+
+	Max UMETA(Hidden)
+};

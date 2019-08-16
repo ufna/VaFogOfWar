@@ -15,6 +15,7 @@ UVaFogAgentComponent::UVaFogAgentComponent(const FObjectInitializer& ObjectIniti
 	InteractionType = EVaFogAgentType::Dispel;
 
 	VisionRadius = 500;
+	RadiusStrategy = EVaFogRadiusStrategy::Circle;
 
 #if WITH_EDITORONLY_DATA
 	bVisualizeComponent = true;

@@ -23,6 +23,7 @@ DECLARE_CYCLE_STAT(TEXT("UpdateAgents"), STAT_UpdateAgents, STATGROUP_VaFog);
 DECLARE_CYCLE_STAT(TEXT("UpdateUpscaleBuffer"), STAT_UpdateUpscaleBuffer, STATGROUP_VaFog);
 DECLARE_CYCLE_STAT(TEXT("FetchTexelFromSource"), STAT_FetchTexelFromSource, STATGROUP_VaFog);
 DECLARE_CYCLE_STAT(TEXT("DrawVisionCircle"), STAT_DrawVisionCircle, STATGROUP_VaFog);
+DECLARE_CYCLE_STAT(TEXT("DrawFieldOfView"), STAT_DrawFieldOfView, STATGROUP_VaFog);
 DECLARE_CYCLE_STAT(TEXT("DrawCircle"), STAT_DrawCircle, STATGROUP_VaFog);
 DECLARE_CYCLE_STAT(TEXT("Plot4Points"), STAT_Plot4Points, STATGROUP_VaFog);
 DECLARE_CYCLE_STAT(TEXT("DrawHorizontalLine"), STAT_DrawHorizontalLine, STATGROUP_VaFog);
@@ -164,6 +165,10 @@ UVaFogLayerComponent::UVaFogLayerComponent(const FObjectInitializer& ObjectIniti
 void UVaFogLayerComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
+
+	// Prepare radius strategies
+	RadiusStrategies.Reserve(static_cast<int32>(EVaFogRadiusStrategy::Max));
+	RadiusStrategies.Emplace(EVaFogRadiusStrategy::Circle, MakeShared<FVaFogRadiusStrategy_Circle>());
 
 	// Cache texture size values
 	int32 CachedTextureResolution = FVaFogOfWarModule::Get().GetSettings()->FogLayerResolution;
@@ -307,12 +312,11 @@ void UVaFogLayerComponent::UpdateAgents()
 		check(FogAgent->VisionRadius >= 0);
 		if (FogAgent->VisionRadius == 0)
 		{
-			check(AgentLocation.X >= 0 && AgentLocation.X < SourceW && AgentLocation.Y >= 0 && AgentLocation.Y < SourceH);
-			SourceBuffer[AgentLocation.Y * SourceW + AgentLocation.X] = 0xFF;
+			Reveal(SourceBuffer, AgentLocation.X, AgentLocation.Y);
 		}
 		else
 		{
-			DrawCircle(SourceBuffer, AgentLocation.X, AgentLocation.Y, FogVolume->ScaleDistanceToLayer(FogAgent->VisionRadius));
+			DrawVisionCircle(SourceBuffer, AgentLocation.X, AgentLocation.Y, FogVolume->ScaleDistanceToLayer(FogAgent->VisionRadius));
 		}
 	}
 }
@@ -353,16 +357,110 @@ void UVaFogLayerComponent::UpdateUpscaleBuffer()
 	}
 }
 
-/**
- * http://www.adammil.net/blog/v125_Roguelike_Vision_Algorithms.html/
- */
-void UVaFogLayerComponent::DrawVisionCircle(int32 CenterX, int32 CenterY, int32 Radius)
+void UVaFogLayerComponent::DrawVisionCircle(uint8* TargetBuffer, int32 CenterX, int32 CenterY, int32 Radius)
 {
 	SCOPE_CYCLE_COUNTER(STAT_DrawVisionCircle);
 
+	// http://www.adammil.net/blog/v125_Roguelike_Vision_Algorithms.html
 	// Shadow casting (point-to-tile or point-to-point)
 	// Pros: Fast. Expanding pillar shadows. Expansive walls. Continuous point visibility.
 	// Cons: Diagonal vision much narrower than cardinal. Blind corners. Beam expands too much through a door. Asymmetrical. Nontrivial to eliminate all artifacts.
+
+	Reveal(TargetBuffer, CenterX, CenterY);
+
+	// Scan each octant
+	for (int32 i = 0; i < 8; ++i)
+	{
+		DrawFieldOfView(TargetBuffer, CenterX, CenterY, Radius, 1, 1.f, 0.f, OctantTransforms[i]);
+	}
+}
+
+void UVaFogLayerComponent::DrawFieldOfView(uint8* TargetBuffer, int32 CenterX, int32 CenterY, int32 Radius, int32 Y, float Start, float End, FFogOctantTransform Transform)
+{
+	if (Start < End)
+	{
+		return;
+	}
+
+	SCOPE_CYCLE_COUNTER(STAT_DrawFieldOfView);
+
+	int32 RadiusSquared = FMath::Square(Radius);
+	float NewStart = 0.0f;
+	bool bBlocked = false;
+
+	int32 DeltaY = 0;
+	int32 CurrentX = 0;
+	int32 CurrentY = 0;
+
+	// @TODO Make in deterministic https://github.com/ufna/VaFogOfWar/issues/57
+	float LeftSlope = 0.f;
+	float RightSlope = 0.f;
+
+	for (int32 Distance = Y; Distance <= Radius && !bBlocked; ++Distance)
+	{
+		DeltaY = -Distance;
+		for (int32 DeltaX = -Distance; DeltaX <= 0; DeltaX++)
+		{
+			CurrentX = CenterX + DeltaX * Transform.xx + DeltaY * Transform.xy;
+			CurrentY = CenterY + DeltaX * Transform.yx + DeltaY * Transform.yy;
+			LeftSlope = (DeltaX - 0.5f) / (DeltaY + 0.5f);
+			RightSlope = (DeltaX + 0.5f) / (DeltaY - 0.5f);
+
+			if (!(CurrentX >= 0 && CurrentY >= 0 && CurrentX < SourceW && CurrentY < SourceH) ||
+				Start < RightSlope)
+			{
+				continue;
+			}
+			else if (End > LeftSlope)
+			{
+				break;
+			}
+
+			// @TODO Make radius strategies configurable https://github.com/ufna/VaFogOfWar/issues/58
+			// Check if it's within the lightable area and light if needed
+			if (RadiusStrategies[EVaFogRadiusStrategy::Circle]->RadiusSquared(CenterX, CenterY, CurrentX, CurrentY) <= RadiusSquared)
+			{
+				Reveal(TargetBuffer, CurrentX, CurrentY);
+			}
+
+			// Check if previous cell was a blocking one
+			if (bBlocked)
+			{
+				if (IsBlocked(CurrentX, CurrentY))
+				{
+					NewStart = RightSlope;
+					continue;
+				}
+				else
+				{
+					bBlocked = false;
+					Start = NewStart;
+				}
+			}
+			else
+			{
+				// Hit a wall within sight line
+				if (IsBlocked(CurrentX, CurrentY) && Distance < Radius)
+				{
+					bBlocked = true;
+					DrawFieldOfView(TargetBuffer, CenterX, CenterY, Radius, Distance + 1, Start, LeftSlope, Transform);
+					NewStart = RightSlope;
+				}
+			}
+		}
+	}
+}
+
+void UVaFogLayerComponent::Reveal(uint8* TargetBuffer, int32 X, int32 Y)
+{
+	check(X >= 0 && X < SourceW && Y >= 0 && Y < SourceH);
+	TargetBuffer[Y * SourceW + X] = 0xFF;
+}
+
+bool UVaFogLayerComponent::IsBlocked(int32 X, int32 Y)
+{
+	check(X >= 0 && X < SourceW && Y >= 0 && Y < SourceH);
+	return ObstaclesBuffer[Y * SourceW + X] == 0xFF;
 }
 
 void UVaFogLayerComponent::DrawCircle(uint8* TargetBuffer, int32 CenterX, int32 CenterY, int32 Radius)
