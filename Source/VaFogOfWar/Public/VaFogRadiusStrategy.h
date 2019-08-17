@@ -14,13 +14,13 @@ public:
 	FVaFogRadiusStrategy(){};
 	virtual ~FVaFogRadiusStrategy() = 0;
 
-	virtual int32 RadiusSquared(int32 CenterX, int32 CenterY, int32 X, int32 Y) { return 0; };
+	virtual bool IsInRadius(int32 CenterX, int32 CenterY, int32 Radius, int32 X, int32 Y) { return false; };
 };
 
 class FVaFogRadiusStrategy_Circle : public FVaFogRadiusStrategy
 {
 public:
-	virtual int32 RadiusSquared(int32 CenterX, int32 CenterY, int32 X, int32 Y) override;
+	virtual bool IsInRadius(int32 CenterX, int32 CenterY, int32 Radius, int32 X, int32 Y) override;
 };
 
 /** Shared reference to the radius strategy */

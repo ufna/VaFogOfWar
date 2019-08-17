@@ -418,7 +418,7 @@ void UVaFogLayerComponent::DrawFieldOfView(uint8* TargetBuffer, int32 CenterX, i
 
 			// @TODO Make radius strategies configurable https://github.com/ufna/VaFogOfWar/issues/58
 			// Check if it's within the lightable area and light if needed
-			if (RadiusStrategies[EVaFogRadiusStrategy::Circle]->RadiusSquared(CenterX, CenterY, CurrentX, CurrentY) <= RadiusSquared)
+			if (RadiusStrategies[EVaFogRadiusStrategy::Circle]->IsInRadius(CenterX, CenterY, Radius, CurrentX, CurrentY))
 			{
 				Reveal(TargetBuffer, CurrentX, CurrentY);
 			}

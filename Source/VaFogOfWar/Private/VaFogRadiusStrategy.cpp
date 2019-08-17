@@ -4,7 +4,7 @@
 
 FVaFogRadiusStrategy::~FVaFogRadiusStrategy() = default;
 
-int32 FVaFogRadiusStrategy_Circle::RadiusSquared(int32 CenterX, int32 CenterY, int32 X, int32 Y)
+bool FVaFogRadiusStrategy_Circle::IsInRadius(int32 CenterX, int32 CenterY, int32 Radius, int32 X, int32 Y)
 {
-	return ((X - CenterX) * (X - CenterX) + (Y - CenterY) * (Y - CenterY));
+	return ((X - CenterX) * (X - CenterX) + (Y - CenterY) * (Y - CenterY)) < FMath::Square(Radius);
 }
