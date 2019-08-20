@@ -17,7 +17,6 @@ bool FVaFogRadiusStrategy_Square::IsInRadius(int32 CenterX, int32 CenterY, int32
 
 bool FVaFogRadiusStrategy_SquareStepped::IsInRadius(int32 CenterX, int32 CenterY, int32 Radius, int32 X, int32 Y)
 {
-
 	float HalfRadius = static_cast<float>(Radius) / 2.f;
 	int32 HalfRadiusX = (X > CenterX) ? FMath::CeilToInt(HalfRadius) : FMath::FloorToInt(HalfRadius);
 	int32 HalfRadiusY = (Y > CenterY) ? FMath::CeilToInt(HalfRadius) : FMath::FloorToInt(HalfRadius);

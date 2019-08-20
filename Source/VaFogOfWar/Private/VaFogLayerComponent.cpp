@@ -340,7 +340,7 @@ void UVaFogLayerComponent::UpdateObstacle(UVaFogAgentComponent* FogAgent, bool b
 	DrawContext.CenterY = AgentLocation.Y;
 	DrawContext.Radius = FogVolume->ScaleDistanceToLayer(FogAgent->VisionRadius);
 	DrawContext.RadiusStrategy = FogAgent->RadiusStrategy;
-	DrawContext.HeightLevel = FogAgent->HeightLevel;
+	DrawContext.HeightLevel = EVaFogHeightLevel(static_cast<uint8>(FogAgent->HeightLevel) << 1);
 	DrawContext.RevealLevel = (bObstacleIsActive) ? (static_cast<uint8>(FogAgent->HeightLevel) << 1) : (static_cast<uint8>(FogAgent->HeightLevel));
 
 	DrawVisionCircle(DrawContext);
