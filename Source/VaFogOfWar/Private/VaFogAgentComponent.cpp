@@ -14,6 +14,7 @@ UVaFogAgentComponent::UVaFogAgentComponent(const FObjectInitializer& ObjectIniti
 	bWantsInitializeComponent = true;
 	InteractionType = EVaFogAgentType::Dispel;
 
+	bAgentEnabled = true;
 	VisionRadius = 500;
 	RadiusStrategy = EVaFogRadiusStrategy::Circle;
 	HeightLevel = EVaFogHeightLevel::HL_3;
@@ -27,14 +28,17 @@ void UVaFogAgentComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
 
-	UVaFogController::Get(this)->OnFogAgentAdded(this);
+	if (bAgentEnabled)
+	{
+		UVaFogController::Get(this)->OnFogAgentAdded(this);
+	}
 }
 
 void UVaFogAgentComponent::UninitializeComponent()
 {
 	Super::UninitializeComponent();
 
-	if (UVaFogController::Get(this, EGetWorldErrorMode::LogAndReturnNull))
+	if (bAgentEnabled && UVaFogController::Get(this, EGetWorldErrorMode::LogAndReturnNull))
 	{
 		UVaFogController::Get(this)->OnFogAgentRemoved(this);
 	}
@@ -54,7 +58,50 @@ void UVaFogAgentComponent::OnRegister()
 
 	UpdateSpriteTexture();
 }
+#endif
 
+void UVaFogAgentComponent::EnableAgent(bool bEnable)
+{
+	bAgentEnabled = bEnable;
+
+	UpdateAgentRegistration();
+}
+
+void UVaFogAgentComponent::DisableAgent()
+{
+	bAgentEnabled = false;
+
+	UpdateAgentRegistration();
+}
+
+bool UVaFogAgentComponent::IsAgentEnabled() const
+{
+	return bAgentEnabled;
+}
+
+void UVaFogAgentComponent::SetVisionRadius(int32 NewVisionRadius)
+{
+	VisionRadius = FMath::Max(NewVisionRadius, 0);
+}
+
+void UVaFogAgentComponent::SetHeightLevel(EVaFogHeightLevel NewHeightLevel)
+{
+	HeightLevel = NewHeightLevel;
+}
+
+void UVaFogAgentComponent::UpdateAgentRegistration()
+{
+	if (bAgentEnabled)
+	{
+		UVaFogController::Get(this)->OnFogAgentAdded(this);
+	}
+	else
+	{
+		UVaFogController::Get(this)->OnFogAgentRemoved(this);
+	}
+}
+
+#if WITH_EDITORONLY_DATA
 void UVaFogAgentComponent::UpdateSpriteTexture()
 {
 	if (SpriteComponent)

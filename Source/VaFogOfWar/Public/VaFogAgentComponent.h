@@ -23,6 +23,31 @@ public:
 #endif
 
 public:
+	/** Set agent enabled (or disable it) */
+	UFUNCTION(BlueprintCallable, Category = "VaFog|Agent")
+	void EnableAgent(bool bEnable = true);
+
+	/** Set agent disabled */
+	UFUNCTION(BlueprintCallable, Category = "VaFog|Agent")
+	void DisableAgent();
+
+	/** Check agent status */
+	UFUNCTION(BlueprintCallable, Category = "VaFog|Agent")
+	bool IsAgentEnabled() const;
+
+	/** Set agent new vision radius */
+	UFUNCTION(BlueprintCallable, Category = "VaFog|Agent")
+	void SetVisionRadius(int32 NewVisionRadius);
+
+	/** Set agent new height level */
+	UFUNCTION(BlueprintCallable, Category = "VaFog|Agent")
+	void SetHeightLevel(EVaFogHeightLevel NewHeightLevel);
+
+public:
+	/** Is agent is enabled by default? */
+	UPROPERTY(EditAnywhere)
+	bool bAgentEnabled;
+
 	/** Fog layer we're scouting by the agent */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	EVaFogLayerChannel TargetChannel;
@@ -31,8 +56,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	EVaFogAgentType InteractionType;
 
-	/** Radius strategy used for fog interaction 
-	 * @TODO Make radius strategies configurable https://github.com/ufna/VaFogOfWar/issues/58 */
+	/** Radius strategy used for fog interaction */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	EVaFogRadiusStrategy RadiusStrategy;
 
@@ -45,6 +69,9 @@ public:
 	EVaFogHeightLevel HeightLevel;
 
 private:
+	/** Update agent status with Fog Controller */
+	void UpdateAgentRegistration();
+
 #if WITH_EDITORONLY_DATA
 	/** Utility function that updates which texture is displayed on the sprite dependent on the properties of the Component. */
 	void UpdateSpriteTexture();
