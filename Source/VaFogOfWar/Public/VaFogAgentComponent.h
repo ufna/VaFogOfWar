@@ -50,7 +50,7 @@ public:
 
 	/** Fog layer we're scouting by the agent */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	EVaFogLayerChannel TargetChannel;
+	TSet<EVaFogLayerChannel> TargetChannels;
 
 	/** Type of fog channel interaction  */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)

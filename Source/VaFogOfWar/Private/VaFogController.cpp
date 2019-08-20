@@ -65,25 +65,31 @@ void UVaFogController::OnFogLayerRemoved(UVaFogLayerComponent* InFogLayer)
 
 void UVaFogController::OnFogAgentAdded(UVaFogAgentComponent* InFogAgent)
 {
-	if (auto TargetFogLayer = GetFogLayer(InFogAgent->TargetChannel))
+	for (auto TargetChannel : InFogAgent->TargetChannels)
 	{
-		TargetFogLayer->AddFogAgent(InFogAgent);
+		if (auto TargetFogLayer = GetFogLayer(TargetChannel))
+		{
+			TargetFogLayer->AddFogAgent(InFogAgent);
 
-		UE_LOG(LogVaFog, Log, TEXT("[%s] Added: %s"), *VA_FUNC_LINE, *InFogAgent->GetName());
-	}
-	else
-	{
-		UE_LOG(LogVaFog, Warning, TEXT("[%s] No suitable fog layer found for: %s (%d)"), *VA_FUNC_LINE, *InFogAgent->GetName(), (int32)InFogAgent->TargetChannel);
+			UE_LOG(LogVaFog, Log, TEXT("[%s] Added: %s"), *VA_FUNC_LINE, *InFogAgent->GetName());
+		}
+		else
+		{
+			UE_LOG(LogVaFog, Warning, TEXT("[%s] No suitable fog layer found for: %s (%d)"), *VA_FUNC_LINE, *InFogAgent->GetName(), (int32)TargetChannel);
+		}
 	}
 }
 
 void UVaFogController::OnFogAgentRemoved(UVaFogAgentComponent* InFogAgent)
 {
-	if (auto TargetFogLayer = GetFogLayer(InFogAgent->TargetChannel))
+	for (auto TargetChannel : InFogAgent->TargetChannels)
 	{
-		TargetFogLayer->RemoveFogAgent(InFogAgent);
+		if (auto TargetFogLayer = GetFogLayer(TargetChannel))
+		{
+			TargetFogLayer->RemoveFogAgent(InFogAgent);
 
-		UE_LOG(LogVaFog, Log, TEXT("[%s] Removed: %s"), *VA_FUNC_LINE, *InFogAgent->GetName());
+			UE_LOG(LogVaFog, Log, TEXT("[%s] Removed: %s"), *VA_FUNC_LINE, *InFogAgent->GetName());
+		}
 	}
 }
 

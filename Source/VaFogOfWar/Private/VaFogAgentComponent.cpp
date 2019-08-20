@@ -12,7 +12,9 @@ UVaFogAgentComponent::UVaFogAgentComponent(const FObjectInitializer& ObjectIniti
 {
 	bAutoActivate = true;
 	bWantsInitializeComponent = true;
+
 	InteractionType = EVaFogAgentType::Dispel;
+	TargetChannels.Add(EVaFogLayerChannel::Permanent);
 
 	bAgentEnabled = true;
 	VisionRadius = 500;
