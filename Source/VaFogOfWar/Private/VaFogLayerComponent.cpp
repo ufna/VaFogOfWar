@@ -146,7 +146,7 @@ UVaFogLayerComponent::UVaFogLayerComponent(const FObjectInitializer& ObjectIniti
 	PrimaryComponentTick.TickGroup = TG_DuringPhysics;
 
 	SourceBuffer = nullptr;
-	ObstaclesBuffer = nullptr;
+	TerrainBuffer = nullptr;
 	UpscaleBuffer = nullptr;
 
 	SourceW = 0;
@@ -193,9 +193,9 @@ void UVaFogLayerComponent::InitializeComponent()
 	UpscaleBufferLength = UpscaleW * UpscaleH * sizeof(uint8);
 	FMemory::Memzero(UpscaleBuffer, UpscaleBufferLength);
 
-	// Fillup Obstacles buffer
-	ObstaclesBuffer = new uint8[UpscaleBufferLength];
-	FMemory::Memzero(ObstaclesBuffer, UpscaleBufferLength);
+	// Fillup terrain buffer with default (zero) level
+	TerrainBuffer = new uint8[UpscaleBufferLength];
+	FMemory::Memset(TerrainBuffer, static_cast<uint8>(EVaFogHeightLevel::HL_1), SourceBufferLength);
 
 	// Prepare debug textures if required
 	if (bDebugBuffers)
@@ -241,10 +241,10 @@ void UVaFogLayerComponent::UninitializeComponent()
 		SourceBuffer = nullptr;
 	}
 
-	if (ObstaclesBuffer)
+	if (TerrainBuffer)
 	{
-		delete[] ObstaclesBuffer;
-		ObstaclesBuffer = nullptr;
+		delete[] TerrainBuffer;
+		TerrainBuffer = nullptr;
 	}
 
 	if (UpscaleBuffer)
@@ -284,7 +284,7 @@ void UVaFogLayerComponent::TickComponent(float DeltaTime, enum ELevelTick TickTy
 	if (bDebugBuffers)
 	{
 		UpdateTextureFromBuffer(SourceTexture, SourceBuffer, SourceBufferLength, SourceUpdateRegion);
-		UpdateTextureFromBuffer(ObstaclesTexture, ObstaclesBuffer, SourceBufferLength, SourceUpdateRegion);
+		UpdateTextureFromBuffer(ObstaclesTexture, TerrainBuffer, SourceBufferLength, SourceUpdateRegion);
 	}
 
 	UpdateTextureFromBuffer(UpscaleTexture, UpscaleBuffer, UpscaleBufferLength, UpscaleUpdateRegion);
@@ -312,34 +312,38 @@ void UVaFogLayerComponent::UpdateAgents()
 		}
 
 		check(FogAgent->VisionRadius >= 0);
-		if (FogAgent->VisionRadius == 0)
-		{
-			Reveal(SourceBuffer, AgentLocation.X, AgentLocation.Y);
-		}
-		else
-		{
-			FFogDrawContext DrawContext;
-			DrawContext.TargetBuffer = SourceBuffer;
-			DrawContext.CenterX = AgentLocation.X;
-			DrawContext.CenterY = AgentLocation.Y;
-			DrawContext.Radius = FogVolume->ScaleDistanceToLayer(FogAgent->VisionRadius);
-			DrawContext.RadiusStrategy = FogAgent->RadiusStrategy;
 
-			DrawVisionCircle(DrawContext);
-		}
+		FFogDrawContext DrawContext;
+		DrawContext.TargetBuffer = SourceBuffer;
+		DrawContext.CenterX = AgentLocation.X;
+		DrawContext.CenterY = AgentLocation.Y;
+		DrawContext.Radius = FogVolume->ScaleDistanceToLayer(FogAgent->VisionRadius);
+		DrawContext.RadiusStrategy = FogAgent->RadiusStrategy;
+		DrawContext.HeightLevel = FogAgent->HeightLevel;
+		DrawContext.RevealLevel = 0xFF;
+
+		DrawVisionCircle(DrawContext);
 	}
 }
 
 void UVaFogLayerComponent::UpdateObstacle(UVaFogAgentComponent* FogAgent, bool bObstacleIsActive, AVaFogBoundsVolume* FogVolume)
 {
 	check(FogAgent);
+	check(FogAgent->VisionRadius >= 0);
 	check(FogVolume);
 
-	FIntPoint AgentLocation = FogVolume->TransformWorldToLayer(FogAgent->GetOwner()->GetActorLocation());
+	FIntPoint AgentLocation = FogVolume->TransformWorldToLayer(FogAgent->GetComponentTransform().GetLocation());
 
-	// Every obstacle updates single cell only
-	check(AgentLocation.X >= 0 && AgentLocation.X < SourceW && AgentLocation.Y >= 0 && AgentLocation.Y < SourceH);
-	ObstaclesBuffer[AgentLocation.Y * SourceW + AgentLocation.X] = (bObstacleIsActive) ? 0xFF : 0x00;
+	FFogDrawContext DrawContext;
+	DrawContext.TargetBuffer = TerrainBuffer;
+	DrawContext.CenterX = AgentLocation.X;
+	DrawContext.CenterY = AgentLocation.Y;
+	DrawContext.Radius = FogVolume->ScaleDistanceToLayer(FogAgent->VisionRadius);
+	DrawContext.RadiusStrategy = FogAgent->RadiusStrategy;
+	DrawContext.HeightLevel = FogAgent->HeightLevel;
+	DrawContext.RevealLevel = (bObstacleIsActive) ? (static_cast<uint8>(FogAgent->HeightLevel) << 1) : (static_cast<uint8>(FogAgent->HeightLevel));
+
+	DrawVisionCircle(DrawContext);
 }
 
 void UVaFogLayerComponent::UpdateUpscaleBuffer()
@@ -375,7 +379,7 @@ void UVaFogLayerComponent::DrawVisionCircle(const FFogDrawContext& DrawContext)
 	// Pros: Fast. Expanding pillar shadows. Expansive walls. Continuous point visibility.
 	// Cons: Diagonal vision much narrower than cardinal. Blind corners. Beam expands too much through a door. Asymmetrical. Nontrivial to eliminate all artifacts.
 
-	Reveal(DrawContext.TargetBuffer, DrawContext.CenterX, DrawContext.CenterY);
+	Reveal(DrawContext, DrawContext.CenterX, DrawContext.CenterY);
 
 	// Scan each octant
 	for (int32 i = 0; i < 8; ++i)
@@ -429,13 +433,13 @@ void UVaFogLayerComponent::DrawFieldOfView(const FFogDrawContext& DrawContext, i
 			// Check if it's within the lightable area and light if needed
 			if (RadiusStrategies[DrawContext.RadiusStrategy]->IsInRadius(DrawContext.CenterX, DrawContext.CenterY, DrawContext.Radius, CurrentX, CurrentY))
 			{
-				Reveal(DrawContext.TargetBuffer, CurrentX, CurrentY);
+				Reveal(DrawContext, CurrentX, CurrentY);
 			}
 
 			// Check if previous cell was a blocking one
 			if (bBlocked)
 			{
-				if (IsBlocked(CurrentX, CurrentY))
+				if (IsBlocked(CurrentX, CurrentY, DrawContext.HeightLevel))
 				{
 					NewStart = RightSlope;
 					continue;
@@ -449,7 +453,7 @@ void UVaFogLayerComponent::DrawFieldOfView(const FFogDrawContext& DrawContext, i
 			else
 			{
 				// Hit a wall within sight line
-				if (IsBlocked(CurrentX, CurrentY) && Distance < DrawContext.Radius)
+				if (IsBlocked(CurrentX, CurrentY, DrawContext.HeightLevel) && Distance < DrawContext.Radius)
 				{
 					bBlocked = true;
 					DrawFieldOfView(DrawContext, Distance + 1, Start, LeftSlope, Transform);
@@ -460,16 +464,16 @@ void UVaFogLayerComponent::DrawFieldOfView(const FFogDrawContext& DrawContext, i
 	}
 }
 
-void UVaFogLayerComponent::Reveal(uint8* TargetBuffer, int32 X, int32 Y)
+void UVaFogLayerComponent::Reveal(const FFogDrawContext& DrawContext, int32 X, int32 Y)
 {
 	check(X >= 0 && X < SourceW && Y >= 0 && Y < SourceH);
-	TargetBuffer[Y * SourceW + X] = 0xFF;
+	DrawContext.TargetBuffer[Y * SourceW + X] = DrawContext.RevealLevel;
 }
 
-bool UVaFogLayerComponent::IsBlocked(int32 X, int32 Y)
+bool UVaFogLayerComponent::IsBlocked(int32 X, int32 Y, EVaFogHeightLevel HeightLevel)
 {
 	check(X >= 0 && X < SourceW && Y >= 0 && Y < SourceH);
-	return ObstaclesBuffer[Y * SourceW + X] == 0xFF;
+	return TerrainBuffer[Y * SourceW + X] > static_cast<uint8>(HeightLevel);
 }
 
 void UVaFogLayerComponent::DrawCircle(const FFogDrawContext& DrawContext)

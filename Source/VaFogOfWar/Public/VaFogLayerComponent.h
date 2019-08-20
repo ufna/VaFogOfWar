@@ -62,6 +62,8 @@ struct FFogDrawContext
 	int32 CenterY;
 	int32 Radius;
 	EVaFogRadiusStrategy RadiusStrategy;
+	EVaFogHeightLevel HeightLevel;
+	uint8 RevealLevel;
 
 	FFogDrawContext()
 		: TargetBuffer(nullptr)
@@ -69,6 +71,8 @@ struct FFogDrawContext
 		, CenterY(0)
 		, Radius(1)
 		, RadiusStrategy(EVaFogRadiusStrategy::Circle)
+		, HeightLevel(EVaFogHeightLevel::HL_1)
+		, RevealLevel(0xFF)
 	{
 	}
 };
@@ -101,10 +105,10 @@ private:
 	void DrawFieldOfView(const FFogDrawContext& DrawContext, int32 Y, float Start, float End, FFogOctantTransform Transform);
 
 	/** Set desired point as visible in TargetBuffer */
-	void Reveal(uint8* TargetBuffer, int32 X, int32 Y);
+	void Reveal(const FFogDrawContext& DrawContext, int32 X, int32 Y);
 
 	/** Check obstacle buffer in desired point */
-	bool IsBlocked(int32 X, int32 Y);
+	bool IsBlocked(int32 X, int32 Y, EVaFogHeightLevel HeightLevel);
 
 	/** Rasterize circle with Bresenham's Midpoint circle algorithm, see https://en.wikipedia.org/wiki/Midpoint_circle_algorithm */
 	void DrawCircle(const FFogDrawContext& DrawContext);
@@ -139,8 +143,8 @@ private:
 	/** Original layer texture on CPU */
 	uint8* SourceBuffer;
 
-	/** Separate buffer used to track obstacles map (same size as source buffer) */
-	uint8* ObstaclesBuffer;
+	/** Separate buffer used to track obstacles and height levels (same size as source buffer) */
+	uint8* TerrainBuffer;
 
 	/** Upscaled layer texture on CPU */
 	uint8* UpscaleBuffer;
