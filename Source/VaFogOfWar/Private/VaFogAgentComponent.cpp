@@ -16,6 +16,7 @@ UVaFogAgentComponent::UVaFogAgentComponent(const FObjectInitializer& ObjectIniti
 
 	VisionRadius = 500;
 	RadiusStrategy = EVaFogRadiusStrategy::Circle;
+	HeightLevel = EVaFogHeightLevel::HL_2;
 
 #if WITH_EDITORONLY_DATA
 	bVisualizeComponent = true;

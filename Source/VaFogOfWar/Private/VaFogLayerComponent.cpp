@@ -169,6 +169,8 @@ void UVaFogLayerComponent::InitializeComponent()
 	// Prepare radius strategies
 	RadiusStrategies.Reserve(static_cast<int32>(EVaFogRadiusStrategy::Max));
 	RadiusStrategies.Emplace(EVaFogRadiusStrategy::Circle, MakeShared<FVaFogRadiusStrategy_Circle>());
+	RadiusStrategies.Emplace(EVaFogRadiusStrategy::Square, MakeShared<FVaFogRadiusStrategy_Square>());
+	RadiusStrategies.Emplace(EVaFogRadiusStrategy::SquareStepped, MakeShared<FVaFogRadiusStrategy_SquareStepped>());
 
 	// Cache texture size values
 	int32 CachedTextureResolution = FVaFogOfWarModule::Get().GetSettings()->FogLayerResolution;
@@ -316,7 +318,14 @@ void UVaFogLayerComponent::UpdateAgents()
 		}
 		else
 		{
-			DrawVisionCircle(SourceBuffer, AgentLocation.X, AgentLocation.Y, FogVolume->ScaleDistanceToLayer(FogAgent->VisionRadius));
+			FFogDrawContext DrawContext;
+			DrawContext.TargetBuffer = SourceBuffer;
+			DrawContext.CenterX = AgentLocation.X;
+			DrawContext.CenterY = AgentLocation.Y;
+			DrawContext.Radius = FogVolume->ScaleDistanceToLayer(FogAgent->VisionRadius);
+			DrawContext.RadiusStrategy = FogAgent->RadiusStrategy;
+
+			DrawVisionCircle(DrawContext);
 		}
 	}
 }
@@ -357,7 +366,7 @@ void UVaFogLayerComponent::UpdateUpscaleBuffer()
 	}
 }
 
-void UVaFogLayerComponent::DrawVisionCircle(uint8* TargetBuffer, int32 CenterX, int32 CenterY, int32 Radius)
+void UVaFogLayerComponent::DrawVisionCircle(const FFogDrawContext& DrawContext)
 {
 	SCOPE_CYCLE_COUNTER(STAT_DrawVisionCircle);
 
@@ -366,16 +375,16 @@ void UVaFogLayerComponent::DrawVisionCircle(uint8* TargetBuffer, int32 CenterX, 
 	// Pros: Fast. Expanding pillar shadows. Expansive walls. Continuous point visibility.
 	// Cons: Diagonal vision much narrower than cardinal. Blind corners. Beam expands too much through a door. Asymmetrical. Nontrivial to eliminate all artifacts.
 
-	Reveal(TargetBuffer, CenterX, CenterY);
+	Reveal(DrawContext.TargetBuffer, DrawContext.CenterX, DrawContext.CenterY);
 
 	// Scan each octant
 	for (int32 i = 0; i < 8; ++i)
 	{
-		DrawFieldOfView(TargetBuffer, CenterX, CenterY, Radius, 1, 1.f, 0.f, OctantTransforms[i]);
+		DrawFieldOfView(DrawContext, 1, 1.f, 0.f, OctantTransforms[i]);
 	}
 }
 
-void UVaFogLayerComponent::DrawFieldOfView(uint8* TargetBuffer, int32 CenterX, int32 CenterY, int32 Radius, int32 Y, float Start, float End, FFogOctantTransform Transform)
+void UVaFogLayerComponent::DrawFieldOfView(const FFogDrawContext& DrawContext, int32 Y, float Start, float End, FFogOctantTransform Transform)
 {
 	if (Start < End)
 	{
@@ -384,7 +393,7 @@ void UVaFogLayerComponent::DrawFieldOfView(uint8* TargetBuffer, int32 CenterX, i
 
 	SCOPE_CYCLE_COUNTER(STAT_DrawFieldOfView);
 
-	int32 RadiusSquared = FMath::Square(Radius);
+	int32 RadiusSquared = FMath::Square(DrawContext.Radius);
 	float NewStart = 0.0f;
 	bool bBlocked = false;
 
@@ -396,13 +405,13 @@ void UVaFogLayerComponent::DrawFieldOfView(uint8* TargetBuffer, int32 CenterX, i
 	float LeftSlope = 0.f;
 	float RightSlope = 0.f;
 
-	for (int32 Distance = Y; Distance <= Radius && !bBlocked; ++Distance)
+	for (int32 Distance = Y; Distance <= DrawContext.Radius && !bBlocked; ++Distance)
 	{
 		DeltaY = -Distance;
 		for (int32 DeltaX = -Distance; DeltaX <= 0; DeltaX++)
 		{
-			CurrentX = CenterX + DeltaX * Transform.xx + DeltaY * Transform.xy;
-			CurrentY = CenterY + DeltaX * Transform.yx + DeltaY * Transform.yy;
+			CurrentX = DrawContext.CenterX + DeltaX * Transform.xx + DeltaY * Transform.xy;
+			CurrentY = DrawContext.CenterY + DeltaX * Transform.yx + DeltaY * Transform.yy;
 			LeftSlope = (DeltaX - 0.5f) / (DeltaY + 0.5f);
 			RightSlope = (DeltaX + 0.5f) / (DeltaY - 0.5f);
 
@@ -418,9 +427,9 @@ void UVaFogLayerComponent::DrawFieldOfView(uint8* TargetBuffer, int32 CenterX, i
 
 			// @TODO Make radius strategies configurable https://github.com/ufna/VaFogOfWar/issues/58
 			// Check if it's within the lightable area and light if needed
-			if (RadiusStrategies[EVaFogRadiusStrategy::Circle]->IsInRadius(CenterX, CenterY, Radius, CurrentX, CurrentY))
+			if (RadiusStrategies[EVaFogRadiusStrategy::Circle]->IsInRadius(DrawContext.CenterX, DrawContext.CenterY, DrawContext.Radius, CurrentX, CurrentY))
 			{
-				Reveal(TargetBuffer, CurrentX, CurrentY);
+				Reveal(DrawContext.TargetBuffer, CurrentX, CurrentY);
 			}
 
 			// Check if previous cell was a blocking one
@@ -440,10 +449,10 @@ void UVaFogLayerComponent::DrawFieldOfView(uint8* TargetBuffer, int32 CenterX, i
 			else
 			{
 				// Hit a wall within sight line
-				if (IsBlocked(CurrentX, CurrentY) && Distance < Radius)
+				if (IsBlocked(CurrentX, CurrentY) && Distance < DrawContext.Radius)
 				{
 					bBlocked = true;
-					DrawFieldOfView(TargetBuffer, CenterX, CenterY, Radius, Distance + 1, Start, LeftSlope, Transform);
+					DrawFieldOfView(DrawContext, Distance + 1, Start, LeftSlope, Transform);
 					NewStart = RightSlope;
 				}
 			}
@@ -463,17 +472,17 @@ bool UVaFogLayerComponent::IsBlocked(int32 X, int32 Y)
 	return ObstaclesBuffer[Y * SourceW + X] == 0xFF;
 }
 
-void UVaFogLayerComponent::DrawCircle(uint8* TargetBuffer, int32 CenterX, int32 CenterY, int32 Radius)
+void UVaFogLayerComponent::DrawCircle(const FFogDrawContext& DrawContext)
 {
 	SCOPE_CYCLE_COUNTER(STAT_DrawCircle);
 
-	if (Radius > SourceW)
+	if (DrawContext.Radius > SourceW)
 	{
-		UE_LOG(LogVaFog, Warning, TEXT("[%s] Vision radius %d is larger than source width %d"), *VA_FUNC_LINE, Radius, SourceW);
+		UE_LOG(LogVaFog, Warning, TEXT("[%s] Vision radius %d is larger than source width %d"), *VA_FUNC_LINE, DrawContext.Radius, SourceW);
 	}
 
-	int32 RadiusError = -Radius;
-	int32 X = FMath::Min(Radius, SourceW);
+	int32 RadiusError = -DrawContext.Radius;
+	int32 X = FMath::Min(DrawContext.Radius, SourceW);
 	int32 Y = 0;
 
 	while (X >= Y)
@@ -484,12 +493,12 @@ void UVaFogLayerComponent::DrawCircle(uint8* TargetBuffer, int32 CenterX, int32 
 		++Y;
 		RadiusError += Y;
 
-		Plot4Points(TargetBuffer, CenterX, CenterY, X, lastY);
+		Plot4Points(DrawContext, X, lastY);
 
 		if (RadiusError >= 0)
 		{
 			if (X != lastY)
-				Plot4Points(TargetBuffer, CenterX, CenterY, lastY, X);
+				Plot4Points(DrawContext, lastY, X);
 
 			RadiusError -= X;
 			--X;
@@ -498,15 +507,15 @@ void UVaFogLayerComponent::DrawCircle(uint8* TargetBuffer, int32 CenterX, int32 
 	}
 }
 
-void UVaFogLayerComponent::Plot4Points(uint8* TargetBuffer, int32 CenterX, int32 CenterY, int32 X, int32 Y)
+void UVaFogLayerComponent::Plot4Points(const FFogDrawContext& DrawContext, int32 X, int32 Y)
 {
 	SCOPE_CYCLE_COUNTER(STAT_Plot4Points);
 
-	DrawHorizontalLine(TargetBuffer, CenterX - X, CenterY + Y, CenterX + X);
+	DrawHorizontalLine(DrawContext.TargetBuffer, DrawContext.CenterX - X, DrawContext.CenterY + Y, DrawContext.CenterX + X);
 
 	if (Y != 0)
 	{
-		DrawHorizontalLine(TargetBuffer, CenterX - X, CenterY - Y, CenterX + X);
+		DrawHorizontalLine(DrawContext.TargetBuffer, DrawContext.CenterX - X, DrawContext.CenterY - Y, DrawContext.CenterX + X);
 	}
 }
 
