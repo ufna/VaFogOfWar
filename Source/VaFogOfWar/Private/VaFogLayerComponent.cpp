@@ -427,7 +427,7 @@ void UVaFogLayerComponent::DrawFieldOfView(const FFogDrawContext& DrawContext, i
 
 			// @TODO Make radius strategies configurable https://github.com/ufna/VaFogOfWar/issues/58
 			// Check if it's within the lightable area and light if needed
-			if (RadiusStrategies[EVaFogRadiusStrategy::Circle]->IsInRadius(DrawContext.CenterX, DrawContext.CenterY, DrawContext.Radius, CurrentX, CurrentY))
+			if (RadiusStrategies[DrawContext.RadiusStrategy]->IsInRadius(DrawContext.CenterX, DrawContext.CenterY, DrawContext.Radius, CurrentX, CurrentY))
 			{
 				Reveal(DrawContext.TargetBuffer, CurrentX, CurrentY);
 			}
