@@ -9,3 +9,14 @@ UVaFogTerrainLayerComponent::UVaFogTerrainLayerComponent(const FObjectInitialize
 	bUseUpscaleBuffer = false;
 	ZeroBufferValue = static_cast<uint8>(EVaFogHeightLevel::HL_1);
 }
+
+void UVaFogTerrainLayerComponent::BeginPlay()
+{
+	// Check initial state and load it if necessary
+	if (InitialTerrainTexture)
+	{
+		// @TODO
+	}
+
+	Super::BeginPlay();
+}

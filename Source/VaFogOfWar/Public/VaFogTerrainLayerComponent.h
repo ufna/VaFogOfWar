@@ -13,4 +13,12 @@ UCLASS(ClassGroup = (VAFogOfWar), editinlinenew, meta = (BlueprintSpawnableCompo
 class VAFOGOFWAR_API UVaFogTerrainLayerComponent : public UVaFogLayerComponent
 {
 	GENERATED_UCLASS_BODY()
+
+public:
+	virtual void BeginPlay() override;
+
+public:
+	/** Initial terrain state to be applied into the source buffer */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Fog of War Terrain")
+	UTexture2D* InitialTerrainTexture;
 };
