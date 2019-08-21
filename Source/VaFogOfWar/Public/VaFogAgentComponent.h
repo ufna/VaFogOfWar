@@ -52,10 +52,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSet<EVaFogLayerChannel> TargetChannels;
 
-	/** Type of fog channel interaction  */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	EVaFogAgentType InteractionType;
-
 	/** Radius strategy used for fog interaction */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	EVaFogRadiusStrategy RadiusStrategy;

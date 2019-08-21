@@ -13,12 +13,10 @@ UVaFogAgentComponent::UVaFogAgentComponent(const FObjectInitializer& ObjectIniti
 	bAutoActivate = true;
 	bWantsInitializeComponent = true;
 
-	InteractionType = EVaFogAgentType::Dispel;
-	TargetChannels.Add(EVaFogLayerChannel::Permanent);
-
 	bAgentEnabled = true;
-	VisionRadius = 500;
+	TargetChannels.Add(EVaFogLayerChannel::Permanent);
 	RadiusStrategy = EVaFogRadiusStrategy::Circle;
+	VisionRadius = 500;
 	HeightLevel = EVaFogHeightLevel::HL_3;
 
 #if WITH_EDITORONLY_DATA
@@ -111,7 +109,7 @@ void UVaFogAgentComponent::UpdateSpriteTexture()
 		SpriteComponent->SpriteInfo.Category = TEXT("Misc");
 		SpriteComponent->SpriteInfo.DisplayName = NSLOCTEXT("SpriteCategory", "Misc", "Misc");
 
-		if (InteractionType == EVaFogAgentType::Obstacle)
+		if (TargetChannels.Contains(EVaFogLayerChannel::Terrain))
 		{
 			SpriteComponent->SetSprite(LoadObject<UTexture2D>(nullptr, TEXT("/Engine/EditorResources/S_Terrain.S_Terrain")));
 		}

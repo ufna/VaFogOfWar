@@ -132,19 +132,18 @@ protected:
 	UPROPERTY()
 	TArray<UVaFogAgentComponent*> FogAgents;
 
-	/** Registered fog obstacle agents for layer */
-	UPROPERTY()
-	TArray<UVaFogAgentComponent*> ObstacleAgents;
-
 	/** Radius strategy instances */
 	TMap<EVaFogRadiusStrategy, FVaFogRadiusStrategyRef> RadiusStrategies;
+
+	/** Is upscaling enabled or original buffer used */
+	bool bUseUpscaleBuffer;
+
+	/** Default source buffer state */
+	uint8 ZeroBufferValue;
 
 private:
 	/** Original layer texture on CPU */
 	uint8* SourceBuffer;
-
-	/** Separate buffer used to track obstacles and height levels (same size as source buffer) */
-	uint8* TerrainBuffer;
 
 	/** Upscaled layer texture on CPU */
 	uint8* UpscaleBuffer;
@@ -181,10 +180,6 @@ public:
 	/** Low-res FoW source buffer as image (check bDebugBuffers) */
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Fog of War")
 	UTexture2D* SourceTexture;
-
-	/** Low-res FoW obstacles buffer as image (check bDebugBuffers) */
-	UPROPERTY(Transient, BlueprintReadOnly, Category = "Fog of War")
-	UTexture2D* ObstaclesTexture;
 
 	/** Upscaled FoW buffer as image (check bDebugUpscaleTexture) */
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Fog of War")

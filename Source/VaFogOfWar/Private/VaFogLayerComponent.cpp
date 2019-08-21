@@ -145,8 +145,11 @@ UVaFogLayerComponent::UVaFogLayerComponent(const FObjectInitializer& ObjectIniti
 	PrimaryComponentTick.bCanEverTick = true;
 	PrimaryComponentTick.TickGroup = TG_DuringPhysics;
 
+	LayerChannel = EVaFogLayerChannel::Permanent;
+	bUseUpscaleBuffer = true;
+	ZeroBufferValue = 0x00;
+
 	SourceBuffer = nullptr;
-	TerrainBuffer = nullptr;
 	UpscaleBuffer = nullptr;
 
 	SourceW = 0;
@@ -183,19 +186,7 @@ void UVaFogLayerComponent::InitializeComponent()
 	SourceH = CachedTextureResolution;
 	SourceBuffer = new uint8[SourceW * SourceH];
 	SourceBufferLength = SourceW * SourceH * sizeof(uint8);
-	FMemory::Memzero(SourceBuffer, SourceBufferLength);
-
-	// Create texture buffer for upscaled texture and initialize it
-	check(!UpscaleBuffer);
-	UpscaleW = CachedUpscaleResolution;
-	UpscaleH = CachedUpscaleResolution;
-	UpscaleBuffer = new uint8[UpscaleW * UpscaleH];
-	UpscaleBufferLength = UpscaleW * UpscaleH * sizeof(uint8);
-	FMemory::Memzero(UpscaleBuffer, UpscaleBufferLength);
-
-	// Fillup terrain buffer with default (zero) level
-	TerrainBuffer = new uint8[UpscaleBufferLength];
-	FMemory::Memset(TerrainBuffer, static_cast<uint8>(EVaFogHeightLevel::HL_1), SourceBufferLength);
+	FMemory::Memset(SourceBuffer, ZeroBufferValue, SourceBufferLength);
 
 	// Prepare debug textures if required
 	if (bDebugBuffers)
@@ -208,25 +199,28 @@ void UVaFogLayerComponent::InitializeComponent()
 		SourceTexture->AddressX = TextureAddress::TA_Clamp;
 		SourceTexture->AddressY = TextureAddress::TA_Clamp;
 		SourceTexture->UpdateResource();
-
-		ObstaclesTexture = UTexture2D::CreateTransient(SourceW, SourceH, EPixelFormat::PF_G8);
-		ObstaclesTexture->CompressionSettings = TextureCompressionSettings::TC_Grayscale;
-		ObstaclesTexture->SRGB = false;
-		ObstaclesTexture->Filter = TextureFilter::TF_Nearest;
-		ObstaclesTexture->AddressX = TextureAddress::TA_Clamp;
-		ObstaclesTexture->AddressY = TextureAddress::TA_Clamp;
-		ObstaclesTexture->UpdateResource();
 	}
 
-	// Upscale texture is the one we export to user
-	UpscaleUpdateRegion = FUpdateTextureRegion2D(0, 0, 0, 0, UpscaleW, UpscaleH);
-	UpscaleTexture = UTexture2D::CreateTransient(UpscaleW, UpscaleH, EPixelFormat::PF_G8);
-	UpscaleTexture->CompressionSettings = TextureCompressionSettings::TC_Grayscale;
-	UpscaleTexture->SRGB = false;
-	UpscaleTexture->Filter = TextureFilter::TF_Nearest;
-	UpscaleTexture->AddressX = TextureAddress::TA_Clamp;
-	UpscaleTexture->AddressY = TextureAddress::TA_Clamp;
-	UpscaleTexture->UpdateResource();
+	if (bUseUpscaleBuffer)
+	{
+		// Create texture buffer for upscaled texture and initialize it
+		check(!UpscaleBuffer);
+		UpscaleW = CachedUpscaleResolution;
+		UpscaleH = CachedUpscaleResolution;
+		UpscaleBuffer = new uint8[UpscaleW * UpscaleH];
+		UpscaleBufferLength = UpscaleW * UpscaleH * sizeof(uint8);
+		FMemory::Memset(UpscaleBuffer, ZeroBufferValue, UpscaleBufferLength);
+
+		// Upscale texture is the one we export to user
+		UpscaleUpdateRegion = FUpdateTextureRegion2D(0, 0, 0, 0, UpscaleW, UpscaleH);
+		UpscaleTexture = UTexture2D::CreateTransient(UpscaleW, UpscaleH, EPixelFormat::PF_G8);
+		UpscaleTexture->CompressionSettings = TextureCompressionSettings::TC_Grayscale;
+		UpscaleTexture->SRGB = false;
+		UpscaleTexture->Filter = TextureFilter::TF_Nearest;
+		UpscaleTexture->AddressX = TextureAddress::TA_Clamp;
+		UpscaleTexture->AddressY = TextureAddress::TA_Clamp;
+		UpscaleTexture->UpdateResource();
+	}
 
 	UVaFogController::Get(this)->OnFogLayerAdded(this);
 }
@@ -241,12 +235,6 @@ void UVaFogLayerComponent::UninitializeComponent()
 		SourceBuffer = nullptr;
 	}
 
-	if (TerrainBuffer)
-	{
-		delete[] TerrainBuffer;
-		TerrainBuffer = nullptr;
-	}
-
 	if (UpscaleBuffer)
 	{
 		delete[] UpscaleBuffer;
@@ -256,11 +244,6 @@ void UVaFogLayerComponent::UninitializeComponent()
 	if (SourceTexture)
 	{
 		SourceTexture = nullptr;
-	}
-
-	if (ObstaclesTexture)
-	{
-		ObstaclesTexture = nullptr;
 	}
 
 	if (UpscaleTexture)
@@ -278,21 +261,27 @@ void UVaFogLayerComponent::TickComponent(float DeltaTime, enum ELevelTick TickTy
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	UpdateAgents();
-	UpdateUpscaleBuffer();
+	// @FIXME Dirty hack for now
+	if (LayerChannel != EVaFogLayerChannel::Terrain)
+	{
+		UpdateAgents();
+	}
 
 	if (bDebugBuffers)
 	{
 		UpdateTextureFromBuffer(SourceTexture, SourceBuffer, SourceBufferLength, SourceUpdateRegion);
-		UpdateTextureFromBuffer(ObstaclesTexture, TerrainBuffer, SourceBufferLength, SourceUpdateRegion);
 	}
 
-	UpdateTextureFromBuffer(UpscaleTexture, UpscaleBuffer, UpscaleBufferLength, UpscaleUpdateRegion);
+	if (bUseUpscaleBuffer)
+	{
+		UpdateUpscaleBuffer();
+		UpdateTextureFromBuffer(UpscaleTexture, UpscaleBuffer, UpscaleBufferLength, UpscaleUpdateRegion);
+	}
 
 	// Cleanup buffer for scouting
 	if (LayerChannel == EVaFogLayerChannel::Scouting)
 	{
-		FMemory::Memzero(SourceBuffer, SourceBufferLength);
+		FMemory::Memset(SourceBuffer, ZeroBufferValue, SourceBufferLength);
 	}
 }
 
@@ -335,7 +324,7 @@ void UVaFogLayerComponent::UpdateObstacle(UVaFogAgentComponent* FogAgent, bool b
 	FIntPoint AgentLocation = FogVolume->TransformWorldToLayer(FogAgent->GetComponentTransform().GetLocation());
 
 	FFogDrawContext DrawContext;
-	DrawContext.TargetBuffer = TerrainBuffer;
+	DrawContext.TargetBuffer = SourceBuffer;
 	DrawContext.CenterX = AgentLocation.X;
 	DrawContext.CenterY = AgentLocation.Y;
 	DrawContext.Radius = FogVolume->ScaleDistanceToLayer(FogAgent->VisionRadius);
@@ -473,7 +462,7 @@ void UVaFogLayerComponent::Reveal(const FFogDrawContext& DrawContext, int32 X, i
 bool UVaFogLayerComponent::IsBlocked(int32 X, int32 Y, EVaFogHeightLevel HeightLevel)
 {
 	check(X >= 0 && X < SourceW && Y >= 0 && Y < SourceH);
-	return TerrainBuffer[Y * SourceW + X] > static_cast<uint8>(HeightLevel);
+	return false; // @TODO TerrainBuffer[Y * SourceW + X] > static_cast<uint8>(HeightLevel);
 }
 
 void UVaFogLayerComponent::DrawCircle(const FFogDrawContext& DrawContext)
@@ -555,39 +544,21 @@ FFogTexel2x2 UVaFogLayerComponent::FetchTexelFromSource(int32 W, int32 H)
 
 void UVaFogLayerComponent::AddFogAgent(UVaFogAgentComponent* InFogAgent)
 {
-	switch (InFogAgent->InteractionType)
+	FogAgents.AddUnique(InFogAgent);
+
+	if (LayerChannel == EVaFogLayerChannel::Terrain)
 	{
-	case EVaFogAgentType::Dispel:
-		FogAgents.AddUnique(InFogAgent);
-		break;
-
-	case EVaFogAgentType::Obstacle:
-		ObstacleAgents.AddUnique(InFogAgent);
 		UpdateObstacle(InFogAgent, true, UVaFogController::Get(this)->GetFogVolume());
-		break;
-
-	default:
-		unimplemented();
 	}
 }
 
 void UVaFogLayerComponent::RemoveFogAgent(UVaFogAgentComponent* InFogAgent)
 {
-	int32 NumRemoved = 0;
+	int32 NumRemoved = FogAgents.Remove(InFogAgent);
 
-	switch (InFogAgent->InteractionType)
+	if (LayerChannel == EVaFogLayerChannel::Terrain)
 	{
-	case EVaFogAgentType::Dispel:
-		NumRemoved = FogAgents.Remove(InFogAgent);
-		break;
-
-	case EVaFogAgentType::Obstacle:
-		NumRemoved = ObstacleAgents.Remove(InFogAgent);
 		UpdateObstacle(InFogAgent, false, UVaFogController::Get(this)->GetFogVolume());
-		break;
-
-	default:
-		unimplemented();
 	}
 
 	if (NumRemoved == 0)

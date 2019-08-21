@@ -10,16 +10,9 @@ enum class EVaFogLayerChannel : uint8
 	/** "Black" fog of war */
 	Permanent,
 	/** "Grey" fog of war */
-	Scouting
-};
-
-UENUM(BlueprintType)
-enum class EVaFogAgentType : uint8
-{
-	/** Fog dispeller (scout) */
-	Dispel,
-	/** Visibility blocker */
-	Obstacle
+	Scouting,
+	/** Vision obstacles */
+	Terrain
 };
 
 UENUM(BlueprintType)
