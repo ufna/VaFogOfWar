@@ -85,6 +85,7 @@ class VAFOGOFWAR_API UVaFogLayerComponent : public UActorComponent
 public:
 	virtual void InitializeComponent() override;
 	virtual void UninitializeComponent() override;
+	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 protected:
@@ -148,6 +149,9 @@ private:
 	/** Upscaled layer texture on CPU */
 	uint8* UpscaleBuffer;
 
+	/** Separate buffer used to track obstacles and height levels (same size as source buffer) */
+	uint8* TerrainBuffer;
+
 	/** Cached data helpers for original texture */
 	int32 SourceW;
 	int32 SourceH;
@@ -159,6 +163,10 @@ private:
 	int32 UpscaleH;
 	int32 UpscaleBufferLength;
 	FUpdateTextureRegion2D UpscaleUpdateRegion;
+
+protected:
+	/** Source buffer accessor for terrain caching */
+	FORCEINLINE uint8* GetSourceBuffer() const { return SourceBuffer; }
 
 	//////////////////////////////////////////////////////////////////////////
 	// Debug

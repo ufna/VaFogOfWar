@@ -151,6 +151,7 @@ UVaFogLayerComponent::UVaFogLayerComponent(const FObjectInitializer& ObjectIniti
 
 	SourceBuffer = nullptr;
 	UpscaleBuffer = nullptr;
+	TerrainBuffer = nullptr;
 
 	SourceW = 0;
 	SourceH = 0;
@@ -255,6 +256,22 @@ void UVaFogLayerComponent::UninitializeComponent()
 	{
 		UVaFogController::Get(this)->OnFogLayerRemoved(this);
 	}
+}
+
+void UVaFogLayerComponent::BeginPlay()
+{
+	// Cache terrain buffer as pointer for fast access or create empty one
+	auto TerrainLayer = UVaFogController::Get(this)->GetFogLayer(EVaFogLayerChannel::Terrain);
+	if (TerrainLayer)
+	{
+		TerrainBuffer = TerrainLayer->GetSourceBuffer();
+	}
+	else
+	{
+		UE_LOG(LogVaFog, Warning, TEXT("[%s] No Terrain layer found"), *VA_FUNC_LINE);
+	}
+
+	Super::BeginPlay();
 }
 
 void UVaFogLayerComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -462,7 +479,7 @@ void UVaFogLayerComponent::Reveal(const FFogDrawContext& DrawContext, int32 X, i
 bool UVaFogLayerComponent::IsBlocked(int32 X, int32 Y, EVaFogHeightLevel HeightLevel)
 {
 	check(X >= 0 && X < SourceW && Y >= 0 && Y < SourceH);
-	return false; // @TODO TerrainBuffer[Y * SourceW + X] > static_cast<uint8>(HeightLevel);
+	return (TerrainBuffer) ? (TerrainBuffer[Y * SourceW + X] > static_cast<uint8>(HeightLevel)) : false;
 }
 
 void UVaFogLayerComponent::DrawCircle(const FFogDrawContext& DrawContext)
