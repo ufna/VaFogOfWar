@@ -260,11 +260,12 @@ void UVaFogLayerComponent::UninitializeComponent()
 
 void UVaFogLayerComponent::BeginPlay()
 {
+	// @TODO Terrain layer shouldn't cache itself
 	// Cache terrain buffer as pointer for fast access or create empty one
 	auto TerrainLayer = UVaFogController::Get(this)->GetFogLayer(EVaFogLayerChannel::Terrain);
 	if (TerrainLayer)
 	{
-		TerrainBuffer = TerrainLayer->GetSourceBuffer();
+		TerrainBuffer = TerrainLayer->SourceBuffer;
 	}
 	else
 	{
@@ -348,6 +349,7 @@ void UVaFogLayerComponent::UpdateObstacle(UVaFogAgentComponent* FogAgent, bool b
 	DrawContext.RadiusStrategy = FogAgent->RadiusStrategy;
 	DrawContext.HeightLevel = EVaFogHeightLevel(static_cast<uint8>(FogAgent->HeightLevel) << 1);
 	DrawContext.RevealLevel = (bObstacleIsActive) ? (static_cast<uint8>(FogAgent->HeightLevel) << 1) : (static_cast<uint8>(FogAgent->HeightLevel));
+	UE_LOG(LogVaFog, Warning, TEXT("[%s] value: %d"), *VA_FUNC_LINE, (static_cast<uint8>(FogAgent->HeightLevel) << 1));
 
 	DrawVisionCircle(DrawContext);
 }

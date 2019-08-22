@@ -142,7 +142,6 @@ protected:
 	/** Default source buffer state */
 	uint8 ZeroBufferValue;
 
-private:
 	/** Original layer texture on CPU */
 	uint8* SourceBuffer;
 
@@ -163,10 +162,6 @@ private:
 	int32 UpscaleH;
 	int32 UpscaleBufferLength;
 	FUpdateTextureRegion2D UpscaleUpdateRegion;
-
-protected:
-	/** Source buffer accessor for terrain caching */
-	FORCEINLINE uint8* GetSourceBuffer() const { return SourceBuffer; }
 
 	//////////////////////////////////////////////////////////////////////////
 	// Debug
