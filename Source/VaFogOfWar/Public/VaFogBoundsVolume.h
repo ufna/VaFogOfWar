@@ -29,9 +29,11 @@ private:
 
 public:
 	/** Convert world location of vector to layer one */
+	UFUNCTION(BlueprintCallable, Category = "VaFog|Bounds")
 	FIntPoint TransformWorldToLayer(const FVector& AgentLocation) const;
 
 	/** Convert distance in wolrd units to the layer one */
+	UFUNCTION(BlueprintCallable, Category = "VaFog|Bounds")
 	int32 ScaleDistanceToLayer(const int32 Distance) const;
 
 private:

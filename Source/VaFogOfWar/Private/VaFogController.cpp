@@ -13,7 +13,7 @@ UVaFogController::UVaFogController(const FObjectInitializer& ObjectInitializer)
 {
 }
 
-UVaFogController* UVaFogController::Get(UObject* WorldContextObject, EGetWorldErrorMode ErrorMode)
+UVaFogController* UVaFogController::Get(const UObject* WorldContextObject, EGetWorldErrorMode ErrorMode)
 {
 	if (UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, ErrorMode))
 	{

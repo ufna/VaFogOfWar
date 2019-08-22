@@ -2,6 +2,8 @@
 
 #include "VaFogTerrainLayerComponent.h"
 
+#include "VaFogBoundsVolume.h"
+#include "VaFogController.h"
 #include "VaFogDefines.h"
 
 #include "Engine/Texture2D.h"
@@ -12,6 +14,27 @@ UVaFogTerrainLayerComponent::UVaFogTerrainLayerComponent(const FObjectInitialize
 	LayerChannel = EVaFogLayerChannel::Terrain;
 	bUseUpscaleBuffer = false;
 	ZeroBufferValue = static_cast<uint8>(EVaFogHeightLevel::HL_1);
+
+	InitialTerrainBuffer = nullptr;
+}
+
+void UVaFogTerrainLayerComponent::InitializeComponent()
+{
+	Super::InitializeComponent();
+
+	InitialTerrainBuffer = new uint8[SourceBufferLength];
+	FMemory::Memset(InitialTerrainBuffer, ZeroBufferValue, SourceBufferLength);
+}
+
+void UVaFogTerrainLayerComponent::UninitializeComponent()
+{
+	Super::UninitializeComponent();
+
+	if (InitialTerrainBuffer)
+	{
+		delete[] InitialTerrainBuffer;
+		InitialTerrainBuffer = nullptr;
+	}
 }
 
 void UVaFogTerrainLayerComponent::BeginPlay()
@@ -31,6 +54,7 @@ void UVaFogTerrainLayerComponent::BeginPlay()
 					if (TextureData)
 					{
 						FMemory::Memcpy(SourceBuffer, TextureData, SourceBufferLength);
+						FMemory::Memcpy(InitialTerrainBuffer, TextureData, SourceBufferLength);
 					}
 					else
 					{
@@ -59,4 +83,44 @@ void UVaFogTerrainLayerComponent::BeginPlay()
 	}
 
 	Super::BeginPlay();
+}
+
+EVaFogHeightLevel UVaFogTerrainLayerComponent::GetHeightLevelAtLocation(const FVector& Location) const
+{
+	auto FogVolume = UVaFogController::Get(this)->GetFogVolume();
+	FIntPoint AgentLocation = FogVolume->TransformWorldToLayer(Location);
+
+	uint8 HeightLevelValue = InitialTerrainBuffer[AgentLocation.Y * SourceW + AgentLocation.X];
+
+	// @TODO Initial values should be valided before use https://github.com/ufna/VaFogOfWar/issues/68
+	if (HeightLevelValue < static_cast<uint8>(EVaFogHeightLevel::HL_2))
+	{
+		return EVaFogHeightLevel::HL_1;
+	}
+	else if (HeightLevelValue < static_cast<uint8>(EVaFogHeightLevel::HL_3))
+	{
+		return EVaFogHeightLevel::HL_2;
+	}
+	else if (HeightLevelValue < static_cast<uint8>(EVaFogHeightLevel::HL_4))
+	{
+		return EVaFogHeightLevel::HL_3;
+	}
+	else if (HeightLevelValue < static_cast<uint8>(EVaFogHeightLevel::HL_5))
+	{
+		return EVaFogHeightLevel::HL_4;
+	}
+	else if (HeightLevelValue < static_cast<uint8>(EVaFogHeightLevel::HL_6))
+	{
+		return EVaFogHeightLevel::HL_5;
+	}
+	else if (HeightLevelValue < static_cast<uint8>(EVaFogHeightLevel::HL_7))
+	{
+		return EVaFogHeightLevel::HL_6;
+	}
+	else if (HeightLevelValue < static_cast<uint8>(EVaFogHeightLevel::HL_8))
+	{
+		return EVaFogHeightLevel::HL_7;
+	}
+
+	return EVaFogHeightLevel::HL_8;
 }

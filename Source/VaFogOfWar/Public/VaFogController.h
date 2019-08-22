@@ -19,7 +19,7 @@ class VAFOGOFWAR_API UVaFogController : public UObject
 
 public:
 	/** Direct access to fog controller */
-	static UVaFogController* Get(UObject* WorldContextObject, EGetWorldErrorMode ErrorMode = EGetWorldErrorMode::Assert);
+	static UVaFogController* Get(const UObject* WorldContextObject, EGetWorldErrorMode ErrorMode = EGetWorldErrorMode::Assert);
 
 	void OnFogBoundsAdded(AVaFogBoundsVolume* InFogVolume);
 	void OnFogBoundsRemoved(AVaFogBoundsVolume* InFogVolume);
