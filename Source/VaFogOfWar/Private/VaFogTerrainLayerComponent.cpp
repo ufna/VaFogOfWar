@@ -88,8 +88,17 @@ void UVaFogTerrainLayerComponent::BeginPlay()
 EVaFogHeightLevel UVaFogTerrainLayerComponent::GetHeightLevelAtLocation(const FVector& Location) const
 {
 	auto FogVolume = UVaFogController::Get(this)->GetFogVolume();
-	FIntPoint AgentLocation = FogVolume->TransformWorldToLayer(Location);
+	if (FogVolume)
+	{
+		return GetHeightLevelAtAgentLocation(FogVolume->TransformWorldToLayer(Location));
+	}
 
+	UE_LOG(LogVaFog, Warning, TEXT("[%s] Fog bounds volume is not registered yet, return default height level"), *VA_FUNC_LINE);
+	return EVaFogHeightLevel::HL_1;
+}
+
+EVaFogHeightLevel UVaFogTerrainLayerComponent::GetHeightLevelAtAgentLocation(const FIntPoint& AgentLocation) const
+{
 	uint8 HeightLevelValue = InitialTerrainBuffer[AgentLocation.Y * SourceW + AgentLocation.X];
 
 	// @TODO Initial values should be valided before use https://github.com/ufna/VaFogOfWar/issues/68

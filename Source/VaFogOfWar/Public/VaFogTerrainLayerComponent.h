@@ -23,6 +23,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "VaFog|Terrain")
 	EVaFogHeightLevel GetHeightLevelAtLocation(const FVector& Location) const;
 
+	/** Get initial terrain state at agent (internal) location */
+	UFUNCTION(BlueprintCallable, Category = "VaFog|Terrain")
+	EVaFogHeightLevel GetHeightLevelAtAgentLocation(const FIntPoint& AgentLocation) const;
+
 public:
 	/** Initial terrain state to be applied into the source buffer */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Fog of War Terrain")
