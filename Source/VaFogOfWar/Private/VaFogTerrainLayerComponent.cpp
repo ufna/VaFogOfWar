@@ -16,8 +16,6 @@ UVaFogTerrainLayerComponent::UVaFogTerrainLayerComponent(const FObjectInitialize
 	ZeroBufferValue = static_cast<uint8>(EVaFogHeightLevel::HL_1);
 
 	InitialTerrainBuffer = nullptr;
-
-	InitialTerrainArray.AddZeroed(128*128);
 }
 
 void UVaFogTerrainLayerComponent::OnRegister()
@@ -30,44 +28,81 @@ void UVaFogTerrainLayerComponent::OnRegister()
 	// Check initial state and load it if necessary
 	if (InitialTerrainTexture)
 	{
-		int32 SizeX = InitialTerrainTexture->GetSizeX();
-		int32 SizeY = InitialTerrainTexture->GetSizeY();
-		EPixelFormat PixelFormat = InitialTerrainTexture->GetPixelFormat();
-		uint8 BytesPerPixel = (PixelFormat == EPixelFormat::PF_G8) ? sizeof(uint8) : static_cast<int32>(PixelFormat);
-
-		// Check that initial texture has right size
-		if (SizeX == SourceW && SizeY == SourceH)
+		if (InitialTerrainTexture->PlatformData && InitialTerrainTexture->GetPixelFormat() != EPixelFormat::PF_Unknown)
 		{
-			if (BytesPerPixel == sizeof(uint8))
-			{
-				uint8* TextureData = static_cast<uint8*>(InitialTerrainTexture->PlatformData->Mips[0].BulkData.Lock(LOCK_READ_ONLY));
+			int32 SizeX = InitialTerrainTexture->GetSizeX();
+			int32 SizeY = InitialTerrainTexture->GetSizeY();
+			EPixelFormat PixelFormat = InitialTerrainTexture->GetPixelFormat();
+			int32 BytesPerPixel = (PixelFormat == EPixelFormat::PF_G8) ? sizeof(uint8) : static_cast<int32>(PixelFormat);
 
-				if (TextureData)
+			// Check that initial texture has right size
+			if (SizeX == SourceW && SizeY == SourceH)
+			{
+				if (BytesPerPixel == sizeof(uint8))
 				{
-					FMemory::Memcpy(InitialTerrainArray.GetData(), TextureData, SourceBufferLength);
-					/*FMemory::Memcpy(SourceBuffer, TextureData, SourceBufferLength);
-					FMemory::Memcpy(InitialTerrainBuffer, TextureData, SourceBufferLength);*/
+					uint8* TextureData = static_cast<uint8*>(InitialTerrainTexture->PlatformData->Mips[0].BulkData.Lock(LOCK_READ_ONLY));
+
+					if (TextureData)
+					{
+						FMemory::Memcpy(SourceBuffer, TextureData, SourceBufferLength);
+						FMemory::Memcpy(InitialTerrainBuffer, TextureData, SourceBufferLength);
+					}
+					else
+					{
+						UE_LOG(LogVaFog, Error, TEXT("[%s] Layer [%s] Can't lock InitialTerrainTexture to read its pixels: %s"), *VA_FUNC_LINE, *GetName(), *InitialTerrainTexture->GetName());
+					}
+
+					InitialTerrainTexture->PlatformData->Mips[0].BulkData.Unlock();
 				}
 				else
 				{
-					UE_LOG(LogVaFog, Error, TEXT("[%s] Layer [%s] Can't lock InitialTerrainTexture to read its pixels: %s"), *VA_FUNC_LINE, *GetName(), *InitialTerrainTexture->GetName());
+					UE_LOG(LogVaFog, Warning, TEXT("[%s] Layer [%s] InitialTerrainTexture has wrong BytesPerPixel: %d, expected: %d"), *VA_FUNC_LINE, *GetName(), BytesPerPixel, sizeof(uint8));
 				}
-
-				InitialTerrainTexture->PlatformData->Mips[0].BulkData.Unlock();
 			}
 			else
 			{
-				UE_LOG(LogVaFog, Warning, TEXT("[%s] Layer [%s] InitialTerrainTexture has wrong BytesPerPixel: %d, expected: %d"), *VA_FUNC_LINE, *GetName(), BytesPerPixel, sizeof(uint8));
+				UE_LOG(LogVaFog, Warning, TEXT("[%s] Layer [%s] InitialTerrainTexture has wrong size: %d x %d, expected: %d x %d"), *VA_FUNC_LINE, *GetName(), SizeX, SizeY, SourceW, SourceH);
 			}
 		}
 		else
 		{
-			UE_LOG(LogVaFog, Warning, TEXT("[%s] Layer [%s] InitialTerrainTexture has wrong size: %d x %d, expected: %d x %d"), *VA_FUNC_LINE, *GetName(), SizeX, SizeY, SourceW, SourceH);
+#if WITH_EDITORONLY_DATA
+			UE_LOG(LogVaFog, Warning, TEXT("[%s] Layer [%s] Can't load PlatformData, try to process Source texture"), *VA_FUNC_LINE, *GetName());
+
+			int32 SizeX = InitialTerrainTexture->Source.GetSizeX();
+			int32 SizeY = InitialTerrainTexture->Source.GetSizeY();
+			int32 BytesPerPixel = InitialTerrainTexture->Source.GetBytesPerPixel();
+
+			if (SizeX == SourceW && SizeY == SourceH)
+			{
+				uint8* TextureData = static_cast<uint8*>(InitialTerrainTexture->Source.LockMip(0));
+				if (TextureData)
+				{
+					// Load each forth pixel (r channel)
+					for (int x = 0; x < SourceW; ++x)
+					{
+						for (int y = 0; y < SourceH; ++y)
+						{
+							InitialTerrainBuffer[y * SourceW + x] = TextureData[y * SourceW * BytesPerPixel + x * BytesPerPixel];
+						}
+					}
+
+					FMemory::Memcpy(SourceBuffer, InitialTerrainBuffer, SourceBufferLength);
+
+					UE_LOG(LogVaFog, Warning, TEXT("[%s] Layer [%s] Initial terrain buffer successfully loaded from Source texture"), *VA_FUNC_LINE, *GetName());
+				}
+
+				InitialTerrainTexture->Source.UnlockMip(0);
+			}
+			else
+			{
+				UE_LOG(LogVaFog, Warning, TEXT("[%s] Layer [%s] InitialTerrainTexture Source has wrong size: %d x %d, expected: %d x %d"), *VA_FUNC_LINE, *GetName(), SizeX, SizeY, SourceW, SourceH);
+			}
+#else
+			UE_LOG(LogVaFog, Error, TEXT("[%s] Layer [%s] Can't load platform data for initial terrain layer"), *VA_FUNC_LINE, *GetName());
+#endif
 		}
 	}
-
-	FMemory::Memcpy(InitialTerrainBuffer, InitialTerrainArray.GetData(), SourceBufferLength);
-	FMemory::Memcpy(SourceBuffer, InitialTerrainArray.GetData(), SourceBufferLength);
 }
 
 void UVaFogTerrainLayerComponent::OnUnregister()
