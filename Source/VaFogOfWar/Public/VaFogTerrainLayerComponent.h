@@ -32,6 +32,10 @@ public:
 	UTexture2D* InitialTerrainTexture;
 
 protected:
+	/** Initial terrain buffer for navigation as array (for serialization purposes) */
+	UPROPERTY()
+	TArray<uint8> InitialTerrainArray;
+
 	/** Initial terrain buffer for navigation */
 	uint8* InitialTerrainBuffer;
 };

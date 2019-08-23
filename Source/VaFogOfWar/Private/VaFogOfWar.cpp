@@ -77,7 +77,7 @@ UVaFogSettings* FVaFogOfWarModule::GetSettings() const
 
 UVaFogController* FVaFogOfWarModule::GetFogController(UWorld* World) const
 {
-	return FogControllers.FindChecked(World);
+	return FogControllers.FindRef(World);
 }
 
 #undef LOCTEXT_NAMESPACE
