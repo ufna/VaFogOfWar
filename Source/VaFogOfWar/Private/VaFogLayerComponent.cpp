@@ -366,8 +366,6 @@ void UVaFogLayerComponent::UpdateObstacle(UVaFogAgentComponent* FogAgent, bool b
 	DrawContext.HeightLevel = EVaFogHeightLevel(static_cast<uint8>(FogAgent->HeightLevel) << 1);
 	DrawContext.RevealLevel = (bObstacleIsActive) ? (static_cast<uint8>(FogAgent->HeightLevel) << 1) : (static_cast<uint8>(FogAgent->HeightLevel));
 
-	UE_LOG(LogVaFog, Warning, TEXT("[%s] --- %s --- %d %d %d "), *VA_FUNC_LINE, *GetName(), (int32)FogAgent->HeightLevel, (int32)DrawContext.HeightLevel, DrawContext.RevealLevel);
-
 	DrawVisionCircle(DrawContext);
 }
 
@@ -498,9 +496,6 @@ void UVaFogLayerComponent::Reveal(const FFogDrawContext& DrawContext, int32 X, i
 bool UVaFogLayerComponent::IsBlocked(int32 X, int32 Y, EVaFogHeightLevel HeightLevel)
 {
 	check(X >= 0 && X < SourceW && Y >= 0 && Y < SourceH);
-	if(!TerrainBuffer)
-		UE_LOG(LogVaFog, Warning, TEXT("[%s] NO TERRAIN BUFFER"), *VA_FUNC_LINE);
-
 	return (TerrainBuffer) ? (TerrainBuffer[Y * SourceW + X] > static_cast<uint8>(HeightLevel)) : false;
 }
 

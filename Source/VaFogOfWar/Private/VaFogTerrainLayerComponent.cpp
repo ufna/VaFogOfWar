@@ -103,6 +103,9 @@ void UVaFogTerrainLayerComponent::OnRegister()
 #endif
 		}
 	}
+
+	// Link self buffer as source
+	TerrainBuffer = SourceBuffer;
 }
 
 void UVaFogTerrainLayerComponent::OnUnregister()
