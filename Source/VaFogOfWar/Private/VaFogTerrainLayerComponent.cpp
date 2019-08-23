@@ -94,37 +94,7 @@ EVaFogHeightLevel UVaFogTerrainLayerComponent::GetHeightLevelAtLocation(const FV
 
 EVaFogHeightLevel UVaFogTerrainLayerComponent::GetHeightLevelAtAgentLocation(const FIntPoint& AgentLocation) const
 {
-	uint8 HeightLevelValue = InitialTerrainBuffer[AgentLocation.Y * SourceW + AgentLocation.X];
-
 	// @TODO Initial values should be valided before use https://github.com/ufna/VaFogOfWar/issues/68
-	if (HeightLevelValue < static_cast<uint8>(EVaFogHeightLevel::HL_2))
-	{
-		return EVaFogHeightLevel::HL_1;
-	}
-	else if (HeightLevelValue < static_cast<uint8>(EVaFogHeightLevel::HL_3))
-	{
-		return EVaFogHeightLevel::HL_2;
-	}
-	else if (HeightLevelValue < static_cast<uint8>(EVaFogHeightLevel::HL_4))
-	{
-		return EVaFogHeightLevel::HL_3;
-	}
-	else if (HeightLevelValue < static_cast<uint8>(EVaFogHeightLevel::HL_5))
-	{
-		return EVaFogHeightLevel::HL_4;
-	}
-	else if (HeightLevelValue < static_cast<uint8>(EVaFogHeightLevel::HL_6))
-	{
-		return EVaFogHeightLevel::HL_5;
-	}
-	else if (HeightLevelValue < static_cast<uint8>(EVaFogHeightLevel::HL_7))
-	{
-		return EVaFogHeightLevel::HL_6;
-	}
-	else if (HeightLevelValue < static_cast<uint8>(EVaFogHeightLevel::HL_8))
-	{
-		return EVaFogHeightLevel::HL_7;
-	}
-
-	return EVaFogHeightLevel::HL_8;
+	uint8 HeightLevelValue = InitialTerrainBuffer[AgentLocation.Y * SourceW + AgentLocation.X];
+	return static_cast<EVaFogHeightLevel>(FMath::Clamp(FMath::RoundUpToPowerOfTwo(HeightLevelValue), static_cast<uint32>(EVaFogHeightLevel::HL_1), static_cast<uint32>(EVaFogHeightLevel::HL_8)));
 }
