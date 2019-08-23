@@ -54,20 +54,7 @@ void AVaFogBoundsVolume::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	// Cache layers resolution for coordinates transform
-	CachedFogLayerResolution = FVaFogOfWarModule::Get().GetSettings()->FogLayerResolution;
-	check(FMath::IsPowerOfTwo(CachedFogLayerResolution));
-	LayerToTextureShift = CachedFogLayerResolution / 2;
-
-	// Calculate world to layet transform
-	float VolumeScaleX = (GetBrushComponent()->Bounds.BoxExtent.X * 2) / CachedFogLayerResolution;
-	float VolumeScaleY = (GetBrushComponent()->Bounds.BoxExtent.Y * 2) / CachedFogLayerResolution;
-	VolumeTransform.SetScale3D({VolumeScaleX, VolumeScaleY, 1});
-
-	VolumeTransform.SetRotation(GetBrushComponent()->GetComponentTransform().GetRotation());
-	VolumeTransform.SetLocation(GetBrushComponent()->GetComponentTransform().GetLocation());
-
-	UE_LOG(LogVaFog, Warning, TEXT("[%s] Cache VolumeTransform: \n%s"), *VA_FUNC_LINE, *VolumeTransform.ToHumanReadableString());
+	UpdateVolumeTransform();
 
 	if (UVaFogController::Get(this))
 	{
@@ -85,14 +72,40 @@ void AVaFogBoundsVolume::Destroyed()
 #if WITH_EDITOR
 void AVaFogBoundsVolume::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	Super::PostEditChangeProperty(PropertyChangedEvent);
+	UpdateVolumeTransform();
 
 	// @TODO Force volume brush to be square or use custom BrushBuilder
+
+	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif
 
+void AVaFogBoundsVolume::UpdateVolumeTransform()
+{
+	// Cache layers resolution for coordinates transform
+	CachedFogLayerResolution = FVaFogOfWarModule::Get().GetSettings()->FogLayerResolution;
+	check(FMath::IsPowerOfTwo(CachedFogLayerResolution));
+	LayerToTextureShift = CachedFogLayerResolution / 2;
+
+	// Calculate world to layet transform
+	float VolumeScaleX = (GetBrushComponent()->Bounds.BoxExtent.X * 2) / CachedFogLayerResolution;
+	float VolumeScaleY = (GetBrushComponent()->Bounds.BoxExtent.Y * 2) / CachedFogLayerResolution;
+	VolumeTransform.SetScale3D({VolumeScaleX, VolumeScaleY, 1});
+
+	VolumeTransform.SetRotation(GetBrushComponent()->GetComponentTransform().GetRotation());
+	VolumeTransform.SetLocation(GetBrushComponent()->GetComponentTransform().GetLocation());
+}
+
 FIntPoint AVaFogBoundsVolume::TransformWorldToLayer(const FVector& AgentLocation) const
 {
+#if WITH_EDITORONLY_DATA
+	// Force update internal settings in case of call from other actor construction script, etc.
+	if (!IsActorInitialized())
+	{
+		const_cast<AVaFogBoundsVolume*>(this)->UpdateVolumeTransform();
+	}
+#endif
+
 	// First transform position into volume local coordinates (scaled with fog rt resolution)
 	FVector LayerPosition = VolumeTransform.InverseTransformPosition(AgentLocation);
 

@@ -83,6 +83,8 @@ class VAFOGOFWAR_API UVaFogLayerComponent : public UActorComponent
 	GENERATED_UCLASS_BODY()
 
 public:
+	virtual void OnRegister() override;
+	virtual void OnUnregister() override;
 	virtual void InitializeComponent() override;
 	virtual void UninitializeComponent() override;
 	virtual void BeginPlay() override;

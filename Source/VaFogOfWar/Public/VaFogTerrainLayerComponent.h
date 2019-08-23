@@ -15,9 +15,8 @@ class VAFOGOFWAR_API UVaFogTerrainLayerComponent : public UVaFogLayerComponent
 	GENERATED_UCLASS_BODY()
 
 public:
-	virtual void InitializeComponent() override;
-	virtual void UninitializeComponent() override;
-	virtual void BeginPlay() override;
+	virtual void OnRegister() override;
+	virtual void OnUnregister() override;
 
 	/** Get initial terrain state at location */
 	UFUNCTION(BlueprintCallable, Category = "VaFog|Terrain")

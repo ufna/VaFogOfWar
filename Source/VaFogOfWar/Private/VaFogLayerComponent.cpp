@@ -166,9 +166,9 @@ UVaFogLayerComponent::UVaFogLayerComponent(const FObjectInitializer& ObjectIniti
 	bDebugBuffers = false;
 }
 
-void UVaFogLayerComponent::InitializeComponent()
+void UVaFogLayerComponent::OnRegister()
 {
-	Super::InitializeComponent();
+	Super::OnRegister();
 
 	// Prepare radius strategies
 	RadiusStrategies.Reserve(static_cast<int32>(EVaFogRadiusStrategy::Max));
@@ -189,6 +189,46 @@ void UVaFogLayerComponent::InitializeComponent()
 	SourceBufferLength = SourceW * SourceH * sizeof(uint8);
 	FMemory::Memset(SourceBuffer, ZeroBufferValue, SourceBufferLength);
 
+	if (bUseUpscaleBuffer)
+	{
+		// Create texture buffer for upscaled texture and initialize it
+		check(!UpscaleBuffer);
+		UpscaleW = CachedUpscaleResolution;
+		UpscaleH = CachedUpscaleResolution;
+		UpscaleBuffer = new uint8[UpscaleW * UpscaleH];
+		UpscaleBufferLength = UpscaleW * UpscaleH * sizeof(uint8);
+		FMemory::Memset(UpscaleBuffer, ZeroBufferValue, UpscaleBufferLength);
+	}
+
+	UVaFogController::Get(this)->OnFogLayerAdded(this);
+}
+
+void UVaFogLayerComponent::OnUnregister()
+{
+	if (UVaFogController::Get(this, EGetWorldErrorMode::LogAndReturnNull))
+	{
+		UVaFogController::Get(this)->OnFogLayerRemoved(this);
+	}
+
+	if (SourceBuffer)
+	{
+		delete[] SourceBuffer;
+		SourceBuffer = nullptr;
+	}
+
+	if (UpscaleBuffer)
+	{
+		delete[] UpscaleBuffer;
+		UpscaleBuffer = nullptr;
+	}
+
+	Super::OnUnregister();
+}
+
+void UVaFogLayerComponent::InitializeComponent()
+{
+	Super::InitializeComponent();
+
 	// Prepare debug textures if required
 	if (bDebugBuffers)
 	{
@@ -204,14 +244,6 @@ void UVaFogLayerComponent::InitializeComponent()
 
 	if (bUseUpscaleBuffer)
 	{
-		// Create texture buffer for upscaled texture and initialize it
-		check(!UpscaleBuffer);
-		UpscaleW = CachedUpscaleResolution;
-		UpscaleH = CachedUpscaleResolution;
-		UpscaleBuffer = new uint8[UpscaleW * UpscaleH];
-		UpscaleBufferLength = UpscaleW * UpscaleH * sizeof(uint8);
-		FMemory::Memset(UpscaleBuffer, ZeroBufferValue, UpscaleBufferLength);
-
 		// Upscale texture is the one we export to user
 		UpscaleUpdateRegion = FUpdateTextureRegion2D(0, 0, 0, 0, UpscaleW, UpscaleH);
 		UpscaleTexture = UTexture2D::CreateTransient(UpscaleW, UpscaleH, EPixelFormat::PF_G8);
@@ -222,26 +254,10 @@ void UVaFogLayerComponent::InitializeComponent()
 		UpscaleTexture->AddressY = TextureAddress::TA_Clamp;
 		UpscaleTexture->UpdateResource();
 	}
-
-	UVaFogController::Get(this)->OnFogLayerAdded(this);
 }
 
 void UVaFogLayerComponent::UninitializeComponent()
 {
-	Super::UninitializeComponent();
-
-	if (SourceBuffer)
-	{
-		delete[] SourceBuffer;
-		SourceBuffer = nullptr;
-	}
-
-	if (UpscaleBuffer)
-	{
-		delete[] UpscaleBuffer;
-		UpscaleBuffer = nullptr;
-	}
-
 	if (SourceTexture)
 	{
 		SourceTexture = nullptr;
@@ -252,10 +268,7 @@ void UVaFogLayerComponent::UninitializeComponent()
 		SourceTexture = nullptr;
 	}
 
-	if (UVaFogController::Get(this, EGetWorldErrorMode::LogAndReturnNull))
-	{
-		UVaFogController::Get(this)->OnFogLayerRemoved(this);
-	}
+	Super::UninitializeComponent();
 }
 
 void UVaFogLayerComponent::BeginPlay()

@@ -27,6 +27,11 @@ private:
 	UBillboardComponent* SpriteComponent;
 #endif
 
+protected:
+	/** Cache volume transform from scene and fog grid resolution from settings */
+	UFUNCTION(BlueprintCallable, Category = "VaFog|Bounds")
+	void UpdateVolumeTransform();
+
 public:
 	/** Convert world location of vector to layer one */
 	UFUNCTION(BlueprintCallable, Category = "VaFog|Bounds")

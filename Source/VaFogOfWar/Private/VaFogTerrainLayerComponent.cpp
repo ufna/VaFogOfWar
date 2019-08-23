@@ -18,27 +18,13 @@ UVaFogTerrainLayerComponent::UVaFogTerrainLayerComponent(const FObjectInitialize
 	InitialTerrainBuffer = nullptr;
 }
 
-void UVaFogTerrainLayerComponent::InitializeComponent()
+void UVaFogTerrainLayerComponent::OnRegister()
 {
-	Super::InitializeComponent();
+	Super::OnRegister();
 
 	InitialTerrainBuffer = new uint8[SourceBufferLength];
 	FMemory::Memset(InitialTerrainBuffer, ZeroBufferValue, SourceBufferLength);
-}
 
-void UVaFogTerrainLayerComponent::UninitializeComponent()
-{
-	Super::UninitializeComponent();
-
-	if (InitialTerrainBuffer)
-	{
-		delete[] InitialTerrainBuffer;
-		InitialTerrainBuffer = nullptr;
-	}
-}
-
-void UVaFogTerrainLayerComponent::BeginPlay()
-{
 	// Check initial state and load it if necessary
 	if (InitialTerrainTexture)
 	{
@@ -81,8 +67,17 @@ void UVaFogTerrainLayerComponent::BeginPlay()
 				SourceW, SourceH);
 		}
 	}
+}
 
-	Super::BeginPlay();
+void UVaFogTerrainLayerComponent::OnUnregister()
+{
+	if (InitialTerrainBuffer)
+	{
+		delete[] InitialTerrainBuffer;
+		InitialTerrainBuffer = nullptr;
+	}
+
+	Super::OnUnregister();
 }
 
 EVaFogHeightLevel UVaFogTerrainLayerComponent::GetHeightLevelAtLocation(const FVector& Location) const
