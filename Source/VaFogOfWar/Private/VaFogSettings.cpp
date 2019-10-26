@@ -27,7 +27,7 @@ void UVaFogSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChang
 		if (PropertyChangedEvent.Property->GetFName() == GET_MEMBER_NAME_CHECKED(UVaFogSettings, FogLayerResolution) &&
 			PropertyChangedEvent.ChangeType != EPropertyChangeType::Interactive)
 		{
-			// @TODO Update in-editor fog layers 
+			// @TODO Update in-editor fog layers
 		}
 	}
 }
