@@ -7,13 +7,13 @@
 #include "VaFogRadiusStrategy.h"
 
 #include "Components/ActorComponent.h"
+#include "RHI.h"
 
 #include "VaFogLayerComponent.generated.h"
 
 class UTextureRenderTarget2D;
 class UTexture2D;
 class UMaterialInterface;
-struct FUpdateTextureRegion2D;
 
 class AVaFogBoundsVolume;
 class UVaFogAgentComponent;

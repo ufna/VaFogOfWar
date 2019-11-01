@@ -13,7 +13,6 @@
 #include "Engine/Texture2D.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Materials/Material.h"
-#include "RHI.h"
 
 #include <functional>
 #include <unordered_map>
