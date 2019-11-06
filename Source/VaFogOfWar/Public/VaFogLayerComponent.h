@@ -141,6 +141,9 @@ protected:
 	/** Is upscaling enabled or original buffer used */
 	bool bUseUpscaleBuffer;
 
+	/** For mobile platforms that switch vertical axis source buffer will be flipped */
+	bool bNeedToSwitchVerticalAxis;
+
 	/** Default source buffer state */
 	uint8 ZeroBufferValue;
 

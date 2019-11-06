@@ -146,6 +146,7 @@ UVaFogLayerComponent::UVaFogLayerComponent(const FObjectInitializer& ObjectIniti
 
 	LayerChannel = EVaFogLayerChannel::Permanent;
 	bUseUpscaleBuffer = true;
+	bNeedToSwitchVerticalAxis = false;
 	ZeroBufferValue = 0x00;
 
 	SourceBuffer = nullptr;
@@ -230,6 +231,8 @@ void UVaFogLayerComponent::OnUnregister()
 void UVaFogLayerComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
+
+	bNeedToSwitchVerticalAxis = RHINeedsToSwitchVerticalAxis(GShaderPlatformForFeatureLevel[GMaxRHIFeatureLevel]);
 
 	// Prepare debug textures if required
 	if (bDebugBuffers)
@@ -338,7 +341,7 @@ void UVaFogLayerComponent::UpdateAgents()
 		FFogDrawContext DrawContext;
 		DrawContext.TargetBuffer = SourceBuffer;
 		DrawContext.CenterX = AgentLocation.X;
-		DrawContext.CenterY = AgentLocation.Y;
+		DrawContext.CenterY = (bNeedToSwitchVerticalAxis) ? (SourceH - AgentLocation.Y - 1) : AgentLocation.Y;
 		DrawContext.Radius = FogVolume->ScaleDistanceToLayer(FogAgent->VisionRadius);
 		DrawContext.RadiusStrategy = FogAgent->RadiusStrategy;
 		DrawContext.HeightLevel = FogAgent->HeightLevel;
@@ -359,7 +362,7 @@ void UVaFogLayerComponent::UpdateObstacle(UVaFogAgentComponent* FogAgent, bool b
 	FFogDrawContext DrawContext;
 	DrawContext.TargetBuffer = SourceBuffer;
 	DrawContext.CenterX = AgentLocation.X;
-	DrawContext.CenterY = AgentLocation.Y;
+	DrawContext.CenterY = (bNeedToSwitchVerticalAxis) ? (SourceH - AgentLocation.Y - 1) : AgentLocation.Y;
 	DrawContext.Radius = FogVolume->ScaleDistanceToLayer(FogAgent->VisionRadius);
 	DrawContext.RadiusStrategy = FogAgent->RadiusStrategy;
 	DrawContext.HeightLevel = EVaFogHeightLevel(static_cast<uint8>(FogAgent->HeightLevel) << 1);
