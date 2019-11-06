@@ -12,7 +12,7 @@ class VAFOGOFWAR_API UVaFogLibrary : public UBlueprintFunctionLibrary
 	GENERATED_UCLASS_BODY()
 
 public:
-	/** Direct access to purchases controller */
+	/** For mobile platforms that switch vertical axis source buffer should be flipped */
 	UFUNCTION(BlueprintPure, Category = "VaFog|Tools")
 	static bool IsRHINeedsToSwitchVerticalAxis();
 };
