@@ -232,7 +232,7 @@ void UVaFogLayerComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
 
-	bNeedToSwitchVerticalAxis = RHINeedsToSwitchVerticalAxis(GShaderPlatformForFeatureLevel[GMaxRHIFeatureLevel]);
+	bNeedToSwitchVerticalAxis = RHINeedsToSwitchVerticalAxis(GMaxRHIShaderPlatform);
 
 	// Prepare debug textures if required
 	if (bDebugBuffers)
@@ -341,7 +341,7 @@ void UVaFogLayerComponent::UpdateAgents()
 		FFogDrawContext DrawContext;
 		DrawContext.TargetBuffer = SourceBuffer;
 		DrawContext.CenterX = AgentLocation.X;
-		DrawContext.CenterY = (bNeedToSwitchVerticalAxis) ? (SourceH - AgentLocation.Y - 1) : AgentLocation.Y;
+		DrawContext.CenterY = OptionalSwitchVerticalAxis(AgentLocation.Y);
 		DrawContext.Radius = FogVolume->ScaleDistanceToLayer(FogAgent->VisionRadius);
 		DrawContext.RadiusStrategy = FogAgent->RadiusStrategy;
 		DrawContext.HeightLevel = FogAgent->HeightLevel;
@@ -362,7 +362,7 @@ void UVaFogLayerComponent::UpdateObstacle(UVaFogAgentComponent* FogAgent, bool b
 	FFogDrawContext DrawContext;
 	DrawContext.TargetBuffer = SourceBuffer;
 	DrawContext.CenterX = AgentLocation.X;
-	DrawContext.CenterY = (bNeedToSwitchVerticalAxis) ? (SourceH - AgentLocation.Y - 1) : AgentLocation.Y;
+	DrawContext.CenterY = OptionalSwitchVerticalAxis(AgentLocation.Y);
 	DrawContext.Radius = FogVolume->ScaleDistanceToLayer(FogAgent->VisionRadius);
 	DrawContext.RadiusStrategy = FogAgent->RadiusStrategy;
 	DrawContext.HeightLevel = EVaFogHeightLevel(static_cast<uint8>(FogAgent->HeightLevel) << 1);
@@ -393,6 +393,11 @@ void UVaFogLayerComponent::UpdateUpscaleBuffer()
 			}
 		}
 	}
+}
+
+int32 UVaFogLayerComponent::OptionalSwitchVerticalAxis(int32 Y)
+{
+	return (bNeedToSwitchVerticalAxis) ? (SourceH - Y - 1) : Y;
 }
 
 void UVaFogLayerComponent::DrawVisionCircle(const FFogDrawContext& DrawContext)
@@ -498,7 +503,7 @@ void UVaFogLayerComponent::Reveal(const FFogDrawContext& DrawContext, int32 X, i
 bool UVaFogLayerComponent::IsBlocked(int32 X, int32 Y, EVaFogHeightLevel HeightLevel)
 {
 	check(X >= 0 && X < SourceW && Y >= 0 && Y < SourceH);
-	return (TerrainBuffer) ? (TerrainBuffer[Y * SourceW + X] > static_cast<uint8>(HeightLevel)) : false;
+	return (TerrainBuffer) ? (TerrainBuffer[OptionalSwitchVerticalAxis(Y) * SourceW + X] > static_cast<uint8>(HeightLevel)) : false;
 }
 
 void UVaFogLayerComponent::DrawCircle(const FFogDrawContext& DrawContext)
