@@ -170,6 +170,8 @@ void UVaFogLayerComponent::OnRegister()
 {
 	Super::OnRegister();
 
+	bNeedToSwitchVerticalAxis = RHINeedsToSwitchVerticalAxis(GMaxRHIShaderPlatform);
+
 	// Prepare radius strategies
 	RadiusStrategies.Reserve(static_cast<int32>(EVaFogRadiusStrategy::Max));
 	RadiusStrategies.Emplace(EVaFogRadiusStrategy::Circle, MakeShared<FVaFogRadiusStrategy_Circle>());
@@ -231,8 +233,6 @@ void UVaFogLayerComponent::OnUnregister()
 void UVaFogLayerComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
-
-	bNeedToSwitchVerticalAxis = RHINeedsToSwitchVerticalAxis(GMaxRHIShaderPlatform);
 
 	// Prepare debug textures if required
 	if (bDebugBuffers)

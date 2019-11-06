@@ -22,6 +22,9 @@ void UVaFogTerrainLayerComponent::OnRegister()
 {
 	Super::OnRegister();
 
+	// Force terrain buffer to be not flipped as it's just a blocker level
+	bNeedToSwitchVerticalAxis = false;
+
 	InitialTerrainBuffer = new uint8[SourceBufferLength];
 	FMemory::Memset(InitialTerrainBuffer, ZeroBufferValue, SourceBufferLength);
 
