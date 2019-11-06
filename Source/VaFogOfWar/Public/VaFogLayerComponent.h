@@ -101,7 +101,7 @@ protected:
 	void UpdateUpscaleBuffer();
 
 	/** For mobile platforms that switch vertical axis Y coordinates will be flipped */
-	int32 OptionalSwitchVerticalAxis(int32 Y);
+	int32 OptionalSwitchVerticalAxis(int32 Y) const;
 
 private:
 	/** Draw circle shaded with obstacles: http://www.adammil.net/blog/v125_Roguelike_Vision_Algorithms.html */

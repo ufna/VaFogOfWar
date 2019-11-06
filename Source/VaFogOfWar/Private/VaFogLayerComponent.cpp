@@ -6,6 +6,7 @@
 #include "VaFogBoundsVolume.h"
 #include "VaFogController.h"
 #include "VaFogDefines.h"
+#include "VaFogLibrary.h"
 #include "VaFogOfWar.h"
 #include "VaFogSettings.h"
 
@@ -170,7 +171,7 @@ void UVaFogLayerComponent::OnRegister()
 {
 	Super::OnRegister();
 
-	bNeedToSwitchVerticalAxis = RHINeedsToSwitchVerticalAxis(GMaxRHIShaderPlatform);
+	bNeedToSwitchVerticalAxis = UVaFogLibrary::IsRHINeedsToSwitchVerticalAxis();
 
 	// Prepare radius strategies
 	RadiusStrategies.Reserve(static_cast<int32>(EVaFogRadiusStrategy::Max));
@@ -395,7 +396,7 @@ void UVaFogLayerComponent::UpdateUpscaleBuffer()
 	}
 }
 
-int32 UVaFogLayerComponent::OptionalSwitchVerticalAxis(int32 Y)
+int32 UVaFogLayerComponent::OptionalSwitchVerticalAxis(int32 Y) const
 {
 	return (bNeedToSwitchVerticalAxis) ? (SourceH - Y - 1) : Y;
 }
