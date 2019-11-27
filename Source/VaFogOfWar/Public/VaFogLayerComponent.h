@@ -90,6 +90,10 @@ public:
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+public:
+	/** Update whole layer state */
+	void UpdateLayer();
+
 protected:
 	/** Process agents info and update FoW map */
 	void UpdateAgents();

@@ -295,6 +295,11 @@ void UVaFogLayerComponent::TickComponent(float DeltaTime, enum ELevelTick TickTy
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	UpdateLayer();
+}
+
+void UVaFogLayerComponent::UpdateLayer()
+{
 	// @FIXME Dirty hack for now
 	if (LayerChannel != EVaFogLayerChannel::Terrain)
 	{
