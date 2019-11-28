@@ -69,5 +69,5 @@ void AVaFogBlockingVolume::PostEditChangeProperty(FPropertyChangedEvent& Propert
 
 void AVaFogBlockingVolume::UpdateVolumeLayers()
 {
-	// @TODO Check layer we should update and apply self into	
+	// @TODO Check layer we should update and apply self into
 }

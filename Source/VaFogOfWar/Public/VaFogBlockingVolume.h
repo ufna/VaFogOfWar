@@ -30,5 +30,4 @@ private:
 protected:
 	/** Process volume bounds and apply its influence into terrain map */
 	void UpdateVolumeLayers();
-
 };
