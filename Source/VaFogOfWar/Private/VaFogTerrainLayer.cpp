@@ -1,6 +1,6 @@
 // Copyright 2019 Vladimir Alyamkin. All Rights Reserved.
 
-#include "VaFogTerrainLayerComponent.h"
+#include "VaFogTerrainLayer.h"
 
 #include "VaFogBoundsVolume.h"
 #include "VaFogController.h"
@@ -8,7 +8,7 @@
 
 #include "Engine/Texture2D.h"
 
-UVaFogTerrainLayerComponent::UVaFogTerrainLayerComponent(const FObjectInitializer& ObjectInitializer)
+AVaFogTerrainLayer::AVaFogTerrainLayer(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	LayerChannel = EVaFogLayerChannel::Terrain;
@@ -18,9 +18,9 @@ UVaFogTerrainLayerComponent::UVaFogTerrainLayerComponent(const FObjectInitialize
 	InitialTerrainBuffer = nullptr;
 }
 
-void UVaFogTerrainLayerComponent::OnRegister()
+void AVaFogTerrainLayer::PostInitializeComponents()
 {
-	Super::OnRegister();
+	Super::PostInitializeComponents();
 
 	InitialTerrainBuffer = new uint8[SourceBufferLength];
 	FMemory::Memset(InitialTerrainBuffer, ZeroBufferValue, SourceBufferLength);
@@ -108,7 +108,7 @@ void UVaFogTerrainLayerComponent::OnRegister()
 	TerrainBuffer = SourceBuffer;
 }
 
-void UVaFogTerrainLayerComponent::OnUnregister()
+void AVaFogTerrainLayer::Destroyed()
 {
 	if (InitialTerrainBuffer)
 	{
@@ -116,10 +116,10 @@ void UVaFogTerrainLayerComponent::OnUnregister()
 		InitialTerrainBuffer = nullptr;
 	}
 
-	Super::OnUnregister();
+	Super::Destroyed();
 }
 
-EVaFogHeightLevel UVaFogTerrainLayerComponent::GetHeightLevelAtLocation(const FVector& Location) const
+EVaFogHeightLevel AVaFogTerrainLayer::GetHeightLevelAtLocation(const FVector& Location) const
 {
 	auto FogVolume = UVaFogController::Get(this)->GetFogVolume();
 	if (FogVolume)
@@ -131,8 +131,12 @@ EVaFogHeightLevel UVaFogTerrainLayerComponent::GetHeightLevelAtLocation(const FV
 	return EVaFogHeightLevel::HL_1;
 }
 
-EVaFogHeightLevel UVaFogTerrainLayerComponent::GetHeightLevelAtAgentLocation(const FIntPoint& AgentLocation) const
+EVaFogHeightLevel AVaFogTerrainLayer::GetHeightLevelAtAgentLocation(const FIntPoint& AgentLocation) const
 {
+	// @FIXME
+	if (!InitialTerrainBuffer)
+		return EVaFogHeightLevel::HL_1;
+
 	// @TODO Initial values should be valided before use https://github.com/ufna/VaFogOfWar/issues/68
 	uint8 HeightLevelValue = InitialTerrainBuffer[AgentLocation.Y * SourceW + AgentLocation.X];
 	return static_cast<EVaFogHeightLevel>(FMath::Clamp(FMath::RoundUpToPowerOfTwo(HeightLevelValue), static_cast<uint32>(EVaFogHeightLevel::HL_1), static_cast<uint32>(EVaFogHeightLevel::HL_8)));

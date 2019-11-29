@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "VaFogLayer.h"
+
 #include "CoreMinimal.h"
 #include "GameFramework/Volume.h"
 
@@ -26,6 +28,10 @@ private:
 	UPROPERTY()
 	UBillboardComponent* SpriteComponent;
 #endif
+
+public:
+	UPROPERTY(EditAnywhere)
+	FComponentReference Layer;
 
 protected:
 	/** Process volume bounds and apply its influence into terrain map */

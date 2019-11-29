@@ -10,7 +10,7 @@
 
 class AVaFogBoundsVolume;
 class UVaFogAgentComponent;
-class UVaFogLayerComponent;
+class AVaFogLayer;
 
 UCLASS()
 class VAFOGOFWAR_API UVaFogController : public UObject
@@ -24,8 +24,8 @@ public:
 	void OnFogBoundsAdded(AVaFogBoundsVolume* InFogVolume);
 	void OnFogBoundsRemoved(AVaFogBoundsVolume* InFogVolume);
 
-	void OnFogLayerAdded(UVaFogLayerComponent* InFogLayer);
-	void OnFogLayerRemoved(UVaFogLayerComponent* InFogLayer);
+	void OnFogLayerAdded(AVaFogLayer* InFogLayer);
+	void OnFogLayerRemoved(AVaFogLayer* InFogLayer);
 
 	void OnFogAgentAdded(UVaFogAgentComponent* InFogAgent);
 	void OnFogAgentRemoved(UVaFogAgentComponent* InFogAgent);
@@ -33,12 +33,12 @@ public:
 	AVaFogBoundsVolume* GetFogVolume() const;
 
 	/** Get fog layer by its channel */
-	UVaFogLayerComponent* GetFogLayer(EVaFogLayerChannel LayerChannel) const;
+	AVaFogLayer* GetFogLayer(EVaFogLayerChannel LayerChannel) const;
 
 private:
 	/** Currently only one fog volume at time is supported */
 	TWeakObjectPtr<AVaFogBoundsVolume> FogVolume;
 
 	/** Registered fog layers */
-	TArray<TWeakObjectPtr<UVaFogLayerComponent>> FogLayers;
+	TArray<TWeakObjectPtr<AVaFogLayer>> FogLayers;
 };

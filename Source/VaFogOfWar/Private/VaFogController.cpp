@@ -5,7 +5,7 @@
 #include "VaFogAgentComponent.h"
 #include "VaFogBoundsVolume.h"
 #include "VaFogDefines.h"
-#include "VaFogLayerComponent.h"
+#include "VaFogLayer.h"
 #include "VaFogOfWar.h"
 
 UVaFogController::UVaFogController(const FObjectInitializer& ObjectInitializer)
@@ -45,14 +45,14 @@ void UVaFogController::OnFogBoundsRemoved(AVaFogBoundsVolume* InFogVolume)
 	}
 }
 
-void UVaFogController::OnFogLayerAdded(UVaFogLayerComponent* InFogLayer)
+void UVaFogController::OnFogLayerAdded(AVaFogLayer* InFogLayer)
 {
 	FogLayers.AddUnique(InFogLayer);
 
 	UE_LOG(LogVaFog, Log, TEXT("[%s] Added: %s %d"), *VA_FUNC_LINE, *InFogLayer->GetName(), (int32)InFogLayer->LayerChannel);
 }
 
-void UVaFogController::OnFogLayerRemoved(UVaFogLayerComponent* InFogLayer)
+void UVaFogController::OnFogLayerRemoved(AVaFogLayer* InFogLayer)
 {
 	int32 RemovedLayersNum = FogLayers.Remove(InFogLayer);
 	if (RemovedLayersNum == 0)
@@ -98,9 +98,9 @@ AVaFogBoundsVolume* UVaFogController::GetFogVolume() const
 	return (FogVolume.IsValid()) ? FogVolume.Get() : nullptr;
 }
 
-UVaFogLayerComponent* UVaFogController::GetFogLayer(EVaFogLayerChannel LayerChannel) const
+AVaFogLayer* UVaFogController::GetFogLayer(EVaFogLayerChannel LayerChannel) const
 {
-	auto FogLayerPtr = FogLayers.FindByPredicate([LayerChannel](const TWeakObjectPtr<UVaFogLayerComponent> InLayer) {
+	auto FogLayerPtr = FogLayers.FindByPredicate([LayerChannel](const TWeakObjectPtr<AVaFogLayer> InLayer) {
 		return (InLayer.IsValid()) ? (InLayer.Get()->LayerChannel == LayerChannel) : false;
 	});
 

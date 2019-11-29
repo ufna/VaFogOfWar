@@ -2,21 +2,23 @@
 
 #pragma once
 
-#include "VaFogLayerComponent.h"
+#include "VaFogLayer.h"
 
-#include "VaFogTerrainLayerComponent.generated.h"
+#include "VaFogTerrainLayer.generated.h"
 
 /** 
- * Pre-configured layer component for handling terrain and obstacles
+ * Pre-configured layer for handling terrain and obstacles
  */
-UCLASS(ClassGroup = (VAFogOfWar), editinlinenew, meta = (BlueprintSpawnableComponent))
-class VAFOGOFWAR_API UVaFogTerrainLayerComponent : public UVaFogLayerComponent
+UCLASS()
+class VAFOGOFWAR_API AVaFogTerrainLayer : public AVaFogLayer
 {
-	GENERATED_UCLASS_BODY()
+	GENERATED_BODY()
 
 public:
-	virtual void OnRegister() override;
-	virtual void OnUnregister() override;
+	AVaFogTerrainLayer(const FObjectInitializer& ObjectInitializer);
+
+	virtual void PostInitializeComponents() override;
+	virtual void Destroyed() override;
 
 	/** Get initial terrain state at location */
 	UFUNCTION(BlueprintCallable, Category = "VaFog|Terrain")

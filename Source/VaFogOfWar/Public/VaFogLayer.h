@@ -6,10 +6,10 @@
 
 #include "VaFogRadiusStrategy.h"
 
-#include "Components/ActorComponent.h"
+#include "GameFramework/Actor.h"
 #include "RHI.h"
 
-#include "VaFogLayerComponent.generated.h"
+#include "VaFogLayer.generated.h"
 
 class UTextureRenderTarget2D;
 class UTexture2D;
@@ -77,18 +77,18 @@ struct FFogDrawContext
 	}
 };
 
-UCLASS(ClassGroup = (VAFogOfWar), editinlinenew, meta = (BlueprintSpawnableComponent))
-class VAFOGOFWAR_API UVaFogLayerComponent : public UActorComponent
+UCLASS(Blueprintable, BlueprintType)
+class VAFOGOFWAR_API AVaFogLayer : public AActor
 {
-	GENERATED_UCLASS_BODY()
+	GENERATED_BODY()
 
 public:
-	virtual void OnRegister() override;
-	virtual void OnUnregister() override;
-	virtual void InitializeComponent() override;
-	virtual void UninitializeComponent() override;
+	AVaFogLayer(const FObjectInitializer& ObjectInitializer);
+
+	virtual void PostInitializeComponents() override;
+	virtual void Destroyed() override;
 	virtual void BeginPlay() override;
-	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void Tick(float DeltaTime) override;
 
 public:
 	/** Update whole layer state */
@@ -197,4 +197,9 @@ public:
 protected:
 	/** Render buffer into debug texture */
 	void UpdateTextureFromBuffer(UTexture2D* DestinationTexture, uint8* SrcBuffer, int32 SrcBufferLength, FUpdateTextureRegion2D& UpdateTextureRegion);
+
+#if WITH_EDITORONLY_DATA
+	UPROPERTY()
+	UBillboardComponent* SpriteComponent;
+#endif
 };

@@ -1,6 +1,6 @@
 // Copyright 2019 Vladimir Alyamkin. All Rights Reserved.
 
-#include "VaFogLayerComponent.h"
+#include "VaFogLayer.h"
 
 #include "VaFogAgentComponent.h"
 #include "VaFogBoundsVolume.h"
@@ -10,10 +10,12 @@
 #include "VaFogOfWar.h"
 #include "VaFogSettings.h"
 
+#include "Components/BillboardComponent.h"
 #include "DrawDebugHelpers.h"
 #include "Engine/Texture2D.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Materials/Material.h"
+#include "UObject/ConstructorHelpers.h"
 
 #include <functional>
 #include <unordered_map>
@@ -137,13 +139,40 @@ static const std::vector<FFogOctantTransform> OctantTransforms = {
 };
 // clang-format on
 
-UVaFogLayerComponent::UVaFogLayerComponent(const FObjectInitializer& ObjectInitializer)
+AVaFogLayer::AVaFogLayer(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	bAutoActivate = true;
-	bWantsInitializeComponent = true;
-	PrimaryComponentTick.bCanEverTick = true;
-	PrimaryComponentTick.TickGroup = TG_DuringPhysics;
+	USceneComponent* SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent0"));
+	RootComponent = SceneComponent;
+	RootComponent->Mobility = EComponentMobility::Static;
+
+#if WITH_EDITORONLY_DATA
+	SpriteComponent = CreateEditorOnlyDefaultSubobject<UBillboardComponent>(TEXT("Sprite"));
+
+	if (!IsRunningCommandlet() && (SpriteComponent != nullptr))
+	{
+		// Structure to hold one-time initialization
+		struct FConstructorStatics
+		{
+			ConstructorHelpers::FObjectFinderOptional<UTexture2D> TextRenderTexture;
+			FConstructorStatics()
+				: TextRenderTexture(TEXT("/Engine/EditorResources/S_SkyLight"))
+			{
+			}
+		};
+		static FConstructorStatics ConstructorStatics;
+
+		SpriteComponent->Sprite = ConstructorStatics.TextRenderTexture.Get();
+		SpriteComponent->RelativeScale3D = FVector(1.f, 1.f, 1.f);
+		SpriteComponent->SetupAttachment(RootComponent);
+		SpriteComponent->bIsScreenSizeScaled = true;
+		SpriteComponent->bAbsoluteScale = true;
+		SpriteComponent->bReceivesDecals = false;
+	}
+#endif
+
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.TickGroup = TG_DuringPhysics;
 
 	LayerChannel = EVaFogLayerChannel::Permanent;
 	bUseUpscaleBuffer = true;
@@ -166,9 +195,9 @@ UVaFogLayerComponent::UVaFogLayerComponent(const FObjectInitializer& ObjectIniti
 	bDebugBuffers = false;
 }
 
-void UVaFogLayerComponent::OnRegister()
+void AVaFogLayer::PostInitializeComponents()
 {
-	Super::OnRegister();
+	Super::PostInitializeComponents();
 
 	// Prepare radius strategies
 	RadiusStrategies.Reserve(static_cast<int32>(EVaFogRadiusStrategy::Max));
@@ -200,38 +229,6 @@ void UVaFogLayerComponent::OnRegister()
 		FMemory::Memset(UpscaleBuffer, ZeroBufferValue, UpscaleBufferLength);
 	}
 
-	if (UVaFogController::Get(this, EGetWorldErrorMode::LogAndReturnNull))
-	{
-		UVaFogController::Get(this)->OnFogLayerAdded(this);
-	}
-}
-
-void UVaFogLayerComponent::OnUnregister()
-{
-	if (UVaFogController::Get(this, EGetWorldErrorMode::LogAndReturnNull))
-	{
-		UVaFogController::Get(this)->OnFogLayerRemoved(this);
-	}
-
-	if (SourceBuffer)
-	{
-		delete[] SourceBuffer;
-		SourceBuffer = nullptr;
-	}
-
-	if (UpscaleBuffer)
-	{
-		delete[] UpscaleBuffer;
-		UpscaleBuffer = nullptr;
-	}
-
-	Super::OnUnregister();
-}
-
-void UVaFogLayerComponent::InitializeComponent()
-{
-	Super::InitializeComponent();
-
 	// Prepare debug textures if required
 	if (bDebugBuffers)
 	{
@@ -257,9 +254,14 @@ void UVaFogLayerComponent::InitializeComponent()
 		UpscaleTexture->AddressY = TextureAddress::TA_Clamp;
 		UpscaleTexture->UpdateResource();
 	}
+
+	if (UVaFogController::Get(this, EGetWorldErrorMode::LogAndReturnNull))
+	{
+		UVaFogController::Get(this)->OnFogLayerAdded(this);
+	}
 }
 
-void UVaFogLayerComponent::UninitializeComponent()
+void AVaFogLayer::Destroyed()
 {
 	if (SourceTexture)
 	{
@@ -271,10 +273,27 @@ void UVaFogLayerComponent::UninitializeComponent()
 		SourceTexture = nullptr;
 	}
 
-	Super::UninitializeComponent();
+	if (UVaFogController::Get(this, EGetWorldErrorMode::LogAndReturnNull))
+	{
+		UVaFogController::Get(this)->OnFogLayerRemoved(this);
+	}
+
+	if (SourceBuffer)
+	{
+		delete[] SourceBuffer;
+		SourceBuffer = nullptr;
+	}
+
+	if (UpscaleBuffer)
+	{
+		delete[] UpscaleBuffer;
+		UpscaleBuffer = nullptr;
+	}
+
+	Super::Destroyed();
 }
 
-void UVaFogLayerComponent::BeginPlay()
+void AVaFogLayer::BeginPlay()
 {
 	// @TODO Terrain layer shouldn't cache itself
 	// Cache terrain buffer as pointer for fast access or create empty one
@@ -291,14 +310,14 @@ void UVaFogLayerComponent::BeginPlay()
 	Super::BeginPlay();
 }
 
-void UVaFogLayerComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void AVaFogLayer::Tick(float DeltaTime)
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	Super::Tick(DeltaTime);
 
 	UpdateLayer();
 }
 
-void UVaFogLayerComponent::UpdateLayer()
+void AVaFogLayer::UpdateLayer()
 {
 	// @FIXME Dirty hack for now
 	if (LayerChannel != EVaFogLayerChannel::Terrain)
@@ -324,7 +343,7 @@ void UVaFogLayerComponent::UpdateLayer()
 	}
 }
 
-void UVaFogLayerComponent::UpdateAgents()
+void AVaFogLayer::UpdateAgents()
 {
 	SCOPE_CYCLE_COUNTER(STAT_UpdateAgents);
 
@@ -354,7 +373,7 @@ void UVaFogLayerComponent::UpdateAgents()
 	}
 }
 
-void UVaFogLayerComponent::UpdateObstacle(UVaFogAgentComponent* FogAgent, bool bObstacleIsActive, AVaFogBoundsVolume* FogVolume)
+void AVaFogLayer::UpdateObstacle(UVaFogAgentComponent* FogAgent, bool bObstacleIsActive, AVaFogBoundsVolume* FogVolume)
 {
 	check(FogAgent);
 	check(FogAgent->VisionRadius >= 0);
@@ -374,7 +393,7 @@ void UVaFogLayerComponent::UpdateObstacle(UVaFogAgentComponent* FogAgent, bool b
 	DrawVisionCircle(DrawContext);
 }
 
-void UVaFogLayerComponent::UpdateUpscaleBuffer()
+void AVaFogLayer::UpdateUpscaleBuffer()
 {
 	SCOPE_CYCLE_COUNTER(STAT_UpdateUpscaleBuffer);
 
@@ -398,7 +417,7 @@ void UVaFogLayerComponent::UpdateUpscaleBuffer()
 	}
 }
 
-void UVaFogLayerComponent::DrawVisionCircle(const FFogDrawContext& DrawContext)
+void AVaFogLayer::DrawVisionCircle(const FFogDrawContext& DrawContext)
 {
 	SCOPE_CYCLE_COUNTER(STAT_DrawVisionCircle);
 
@@ -416,7 +435,7 @@ void UVaFogLayerComponent::DrawVisionCircle(const FFogDrawContext& DrawContext)
 	}
 }
 
-void UVaFogLayerComponent::DrawFieldOfView(const FFogDrawContext& DrawContext, int32 Y, float Start, float End, FFogOctantTransform Transform)
+void AVaFogLayer::DrawFieldOfView(const FFogDrawContext& DrawContext, int32 Y, float Start, float End, FFogOctantTransform Transform)
 {
 	if (Start < End)
 	{
@@ -492,19 +511,19 @@ void UVaFogLayerComponent::DrawFieldOfView(const FFogDrawContext& DrawContext, i
 	}
 }
 
-void UVaFogLayerComponent::Reveal(const FFogDrawContext& DrawContext, int32 X, int32 Y)
+void AVaFogLayer::Reveal(const FFogDrawContext& DrawContext, int32 X, int32 Y)
 {
 	check(X >= 0 && X < SourceW && Y >= 0 && Y < SourceH);
 	DrawContext.TargetBuffer[Y * SourceW + X] = DrawContext.RevealLevel;
 }
 
-bool UVaFogLayerComponent::IsBlocked(int32 X, int32 Y, EVaFogHeightLevel HeightLevel)
+bool AVaFogLayer::IsBlocked(int32 X, int32 Y, EVaFogHeightLevel HeightLevel)
 {
 	check(X >= 0 && X < SourceW && Y >= 0 && Y < SourceH);
 	return (TerrainBuffer) ? (TerrainBuffer[Y * SourceW + X] > static_cast<uint8>(HeightLevel)) : false;
 }
 
-void UVaFogLayerComponent::DrawCircle(const FFogDrawContext& DrawContext)
+void AVaFogLayer::DrawCircle(const FFogDrawContext& DrawContext)
 {
 	SCOPE_CYCLE_COUNTER(STAT_DrawCircle);
 
@@ -539,7 +558,7 @@ void UVaFogLayerComponent::DrawCircle(const FFogDrawContext& DrawContext)
 	}
 }
 
-void UVaFogLayerComponent::Plot4Points(const FFogDrawContext& DrawContext, int32 X, int32 Y)
+void AVaFogLayer::Plot4Points(const FFogDrawContext& DrawContext, int32 X, int32 Y)
 {
 	SCOPE_CYCLE_COUNTER(STAT_Plot4Points);
 
@@ -551,7 +570,7 @@ void UVaFogLayerComponent::Plot4Points(const FFogDrawContext& DrawContext, int32
 	}
 }
 
-void UVaFogLayerComponent::DrawHorizontalLine(uint8* TargetBuffer, int32 x0, int32 y0, int32 x1)
+void AVaFogLayer::DrawHorizontalLine(uint8* TargetBuffer, int32 x0, int32 y0, int32 x1)
 {
 	if (y0 < 0 || y0 >= SourceH || x0 >= SourceW || x1 < 0)
 		return;
@@ -564,7 +583,7 @@ void UVaFogLayerComponent::DrawHorizontalLine(uint8* TargetBuffer, int32 x0, int
 	FMemory::Memset(&TargetBuffer[y0 * SourceW + x0opt], 0xFF, x1opt - x0opt + 1);
 }
 
-FFogTexel2x2 UVaFogLayerComponent::FetchTexelFromSource(int32 W, int32 H)
+FFogTexel2x2 AVaFogLayer::FetchTexelFromSource(int32 W, int32 H)
 {
 	//SCOPE_CYCLE_COUNTER(STAT_FetchTexelFromSource);
 
@@ -581,7 +600,7 @@ FFogTexel2x2 UVaFogLayerComponent::FetchTexelFromSource(int32 W, int32 H)
 	return Texel;
 }
 
-void UVaFogLayerComponent::AddFogAgent(UVaFogAgentComponent* InFogAgent)
+void AVaFogLayer::AddFogAgent(UVaFogAgentComponent* InFogAgent)
 {
 	FogAgents.AddUnique(InFogAgent);
 
@@ -591,7 +610,7 @@ void UVaFogLayerComponent::AddFogAgent(UVaFogAgentComponent* InFogAgent)
 	}
 }
 
-void UVaFogLayerComponent::RemoveFogAgent(UVaFogAgentComponent* InFogAgent)
+void AVaFogLayer::RemoveFogAgent(UVaFogAgentComponent* InFogAgent)
 {
 	int32 NumRemoved = FogAgents.Remove(InFogAgent);
 
@@ -606,7 +625,7 @@ void UVaFogLayerComponent::RemoveFogAgent(UVaFogAgentComponent* InFogAgent)
 	}
 }
 
-void UVaFogLayerComponent::UpdateTextureFromBuffer(UTexture2D* DestinationTexture, uint8* SrcBuffer, int32 SrcBufferLength, FUpdateTextureRegion2D& UpdateTextureRegion)
+void AVaFogLayer::UpdateTextureFromBuffer(UTexture2D* DestinationTexture, uint8* SrcBuffer, int32 SrcBufferLength, FUpdateTextureRegion2D& UpdateTextureRegion)
 {
 	struct FTextureData
 	{
