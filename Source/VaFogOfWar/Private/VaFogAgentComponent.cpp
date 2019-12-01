@@ -27,21 +27,31 @@ UVaFogAgentComponent::UVaFogAgentComponent(const FObjectInitializer& ObjectIniti
 void UVaFogAgentComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
-
-	if (bAgentEnabled)
-	{
-		UVaFogController::Get(this)->OnFogAgentAdded(this);
-	}
 }
 
 void UVaFogAgentComponent::UninitializeComponent()
 {
 	Super::UninitializeComponent();
+}
 
+void UVaFogAgentComponent::BeginPlay()
+{
+	if (bAgentEnabled)
+	{
+		UVaFogController::Get(this)->OnFogAgentAdded(this);
+	}
+
+	Super::BeginPlay();
+}
+
+void UVaFogAgentComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
 	if (bAgentEnabled && UVaFogController::Get(this, EGetWorldErrorMode::LogAndReturnNull))
 	{
 		UVaFogController::Get(this)->OnFogAgentRemoved(this);
 	}
+
+	Super::EndPlay(EndPlayReason);
 }
 
 #if WITH_EDITORONLY_DATA

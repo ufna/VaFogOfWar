@@ -17,6 +17,7 @@ class UMaterialInterface;
 
 class AVaFogBoundsVolume;
 class UVaFogAgentComponent;
+class AVaFogTerrainLayer;
 
 struct FFogTexel2x2
 {
@@ -129,6 +130,10 @@ public:
 	/** Defines which refresh logic will be used: permanent drawing or runtime visible area */
 	UPROPERTY(EditAnywhere, Category = "Fog of War")
 	EVaFogLayerChannel LayerChannel;
+
+	/** Layer that provides world information */
+	UPROPERTY(EditAnywhere, Category = "Fog of War")
+	AVaFogTerrainLayer* TerrainLayer;
 
 public:
 	void AddFogAgent(UVaFogAgentComponent* InFogAgent);

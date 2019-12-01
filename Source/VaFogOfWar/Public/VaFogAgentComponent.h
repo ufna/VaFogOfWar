@@ -17,6 +17,9 @@ public:
 	virtual void InitializeComponent() override;
 	virtual void UninitializeComponent() override;
 
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 #if WITH_EDITORONLY_DATA
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void OnRegister() override;

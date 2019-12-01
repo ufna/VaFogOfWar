@@ -9,6 +9,7 @@
 #include "VaFogLibrary.h"
 #include "VaFogOfWar.h"
 #include "VaFogSettings.h"
+#include "VaFogTerrainLayer.h"
 
 #include "Components/BillboardComponent.h"
 #include "DrawDebugHelpers.h"
@@ -297,7 +298,6 @@ void AVaFogLayer::BeginPlay()
 {
 	// @TODO Terrain layer shouldn't cache itself
 	// Cache terrain buffer as pointer for fast access or create empty one
-	auto TerrainLayer = UVaFogController::Get(this)->GetFogLayer(EVaFogLayerChannel::Terrain);
 	if (TerrainLayer)
 	{
 		TerrainBuffer = TerrainLayer->SourceBuffer;
