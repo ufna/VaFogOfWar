@@ -17,6 +17,8 @@ class VAFOGOFWAR_API AVaFogTerrainLayer : public AVaFogLayer
 public:
 	AVaFogTerrainLayer(const FObjectInitializer& ObjectInitializer);
 
+	virtual void PostLoad() override;
+
 	virtual void PostInitializeComponents() override;
 	virtual void Destroyed() override;
 
@@ -34,6 +36,9 @@ public:
 	UTexture2D* InitialTerrainTexture;
 
 protected:
+	/** Process input texture and load it into memory as obstacles buffer */
+	void LoadTerrainBufferFromTexture();
+
 	/** Initial terrain buffer for navigation */
 	uint8* InitialTerrainBuffer;
 };

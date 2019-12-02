@@ -18,9 +18,55 @@ AVaFogTerrainLayer::AVaFogTerrainLayer(const FObjectInitializer& ObjectInitializ
 	InitialTerrainBuffer = nullptr;
 }
 
+void AVaFogTerrainLayer::PostLoad()
+{
+	Super::PostLoad();
+
+	LoadTerrainBufferFromTexture();
+}
+
 void AVaFogTerrainLayer::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
+}
+
+void AVaFogTerrainLayer::Destroyed()
+{
+	if (InitialTerrainBuffer)
+	{
+		delete[] InitialTerrainBuffer;
+		InitialTerrainBuffer = nullptr;
+	}
+
+	Super::Destroyed();
+}
+
+EVaFogHeightLevel AVaFogTerrainLayer::GetHeightLevelAtLocation(const FVector& Location) const
+{
+	auto FogVolume = UVaFogController::Get(this)->GetFogVolume();
+	if (FogVolume)
+	{
+		return GetHeightLevelAtAgentLocation(FogVolume->TransformWorldToLayer(Location));
+	}
+
+	UE_LOG(LogVaFog, Warning, TEXT("[%s] Fog bounds volume is not registered yet, return default height level"), *VA_FUNC_LINE);
+	return EVaFogHeightLevel::HL_1;
+}
+
+EVaFogHeightLevel AVaFogTerrainLayer::GetHeightLevelAtAgentLocation(const FIntPoint& AgentLocation) const
+{
+	// @FIXME
+	if (!InitialTerrainBuffer)
+		return EVaFogHeightLevel::HL_1;
+
+	// @TODO Initial values should be valided before use https://github.com/ufna/VaFogOfWar/issues/68
+	uint8 HeightLevelValue = InitialTerrainBuffer[AgentLocation.Y * SourceW + AgentLocation.X];
+	return static_cast<EVaFogHeightLevel>(FMath::Clamp(FMath::RoundUpToPowerOfTwo(HeightLevelValue), static_cast<uint32>(EVaFogHeightLevel::HL_1), static_cast<uint32>(EVaFogHeightLevel::HL_8)));
+}
+
+void AVaFogTerrainLayer::LoadTerrainBufferFromTexture()
+{
+	UE_LOG(LogVaFog, Warning, TEXT("[%s] Update initial terrain buffer"), *VA_FUNC_LINE);
 
 	InitialTerrainBuffer = new uint8[SourceBufferLength];
 	FMemory::Memset(InitialTerrainBuffer, ZeroBufferValue, SourceBufferLength);
@@ -106,38 +152,4 @@ void AVaFogTerrainLayer::PostInitializeComponents()
 
 	// Link self buffer as source
 	TerrainBuffer = SourceBuffer;
-}
-
-void AVaFogTerrainLayer::Destroyed()
-{
-	if (InitialTerrainBuffer)
-	{
-		delete[] InitialTerrainBuffer;
-		InitialTerrainBuffer = nullptr;
-	}
-
-	Super::Destroyed();
-}
-
-EVaFogHeightLevel AVaFogTerrainLayer::GetHeightLevelAtLocation(const FVector& Location) const
-{
-	auto FogVolume = UVaFogController::Get(this)->GetFogVolume();
-	if (FogVolume)
-	{
-		return GetHeightLevelAtAgentLocation(FogVolume->TransformWorldToLayer(Location));
-	}
-
-	UE_LOG(LogVaFog, Warning, TEXT("[%s] Fog bounds volume is not registered yet, return default height level"), *VA_FUNC_LINE);
-	return EVaFogHeightLevel::HL_1;
-}
-
-EVaFogHeightLevel AVaFogTerrainLayer::GetHeightLevelAtAgentLocation(const FIntPoint& AgentLocation) const
-{
-	// @FIXME
-	if (!InitialTerrainBuffer)
-		return EVaFogHeightLevel::HL_1;
-
-	// @TODO Initial values should be valided before use https://github.com/ufna/VaFogOfWar/issues/68
-	uint8 HeightLevelValue = InitialTerrainBuffer[AgentLocation.Y * SourceW + AgentLocation.X];
-	return static_cast<EVaFogHeightLevel>(FMath::Clamp(FMath::RoundUpToPowerOfTwo(HeightLevelValue), static_cast<uint32>(EVaFogHeightLevel::HL_1), static_cast<uint32>(EVaFogHeightLevel::HL_8)));
 }
