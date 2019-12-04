@@ -22,7 +22,7 @@ AVaFogBlockingVolume::AVaFogBlockingVolume(const FObjectInitializer& ObjectIniti
 		{
 			ConstructorHelpers::FObjectFinderOptional<UTexture2D> TextRenderTexture;
 			FConstructorStatics()
-				: TextRenderTexture(TEXT("/Engine/EditorResources/S_SkyLight"))
+				: TextRenderTexture(TEXT("/Engine/EditorResources/S_VectorFieldVol"))
 			{
 			}
 		};

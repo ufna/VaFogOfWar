@@ -6,11 +6,31 @@
 #include "VaFogController.h"
 #include "VaFogDefines.h"
 
+#include "Components/BillboardComponent.h"
 #include "Engine/Texture2D.h"
+#include "UObject/ConstructorHelpers.h"
 
 AVaFogTerrainLayer::AVaFogTerrainLayer(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+#if WITH_EDITORONLY_DATA
+	if (SpriteComponent)
+	{
+		// Structure to hold one-time initialization
+		struct FConstructorStatics
+		{
+			ConstructorHelpers::FObjectFinderOptional<UTexture2D> TextRenderTexture;
+			FConstructorStatics()
+				: TextRenderTexture(TEXT("/Engine/EditorResources/S_Terrain.S_Terrain"))
+			{
+			}
+		};
+		static FConstructorStatics ConstructorStatics;
+
+		SpriteComponent->Sprite = ConstructorStatics.TextRenderTexture.Get();
+	}
+#endif
+
 	LayerChannel = EVaFogLayerChannel::Terrain;
 	bUseUpscaleBuffer = false;
 	ZeroBufferValue = static_cast<uint8>(EVaFogHeightLevel::HL_1);
@@ -18,19 +38,14 @@ AVaFogTerrainLayer::AVaFogTerrainLayer(const FObjectInitializer& ObjectInitializ
 	InitialTerrainBuffer = nullptr;
 }
 
-void AVaFogTerrainLayer::PostLoad()
+void AVaFogTerrainLayer::InitInternalBuffers()
 {
-	Super::PostLoad();
+	Super::InitInternalBuffers();
 
 	LoadTerrainBufferFromTexture();
 }
 
-void AVaFogTerrainLayer::PostInitializeComponents()
-{
-	Super::PostInitializeComponents();
-}
-
-void AVaFogTerrainLayer::Destroyed()
+void AVaFogTerrainLayer::CleanupInternalBuffers()
 {
 	if (InitialTerrainBuffer)
 	{
@@ -38,7 +53,7 @@ void AVaFogTerrainLayer::Destroyed()
 		InitialTerrainBuffer = nullptr;
 	}
 
-	Super::Destroyed();
+	Super::CleanupInternalBuffers();
 }
 
 EVaFogHeightLevel AVaFogTerrainLayer::GetHeightLevelAtLocation(const FVector& Location) const
@@ -55,10 +70,6 @@ EVaFogHeightLevel AVaFogTerrainLayer::GetHeightLevelAtLocation(const FVector& Lo
 
 EVaFogHeightLevel AVaFogTerrainLayer::GetHeightLevelAtAgentLocation(const FIntPoint& AgentLocation) const
 {
-	// @FIXME
-	if (!InitialTerrainBuffer)
-		return EVaFogHeightLevel::HL_1;
-
 	// @TODO Initial values should be valided before use https://github.com/ufna/VaFogOfWar/issues/68
 	uint8 HeightLevelValue = InitialTerrainBuffer[AgentLocation.Y * SourceW + AgentLocation.X];
 	return static_cast<EVaFogHeightLevel>(FMath::Clamp(FMath::RoundUpToPowerOfTwo(HeightLevelValue), static_cast<uint32>(EVaFogHeightLevel::HL_1), static_cast<uint32>(EVaFogHeightLevel::HL_8)));
@@ -67,6 +78,13 @@ EVaFogHeightLevel AVaFogTerrainLayer::GetHeightLevelAtAgentLocation(const FIntPo
 void AVaFogTerrainLayer::LoadTerrainBufferFromTexture()
 {
 	UE_LOG(LogVaFog, Warning, TEXT("[%s] Update initial terrain buffer"), *VA_FUNC_LINE);
+
+	// Cleanup first
+	if (InitialTerrainBuffer)
+	{
+		delete[] InitialTerrainBuffer;
+		InitialTerrainBuffer = nullptr;
+	}
 
 	InitialTerrainBuffer = new uint8[SourceBufferLength];
 	FMemory::Memset(InitialTerrainBuffer, ZeroBufferValue, SourceBufferLength);

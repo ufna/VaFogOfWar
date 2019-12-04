@@ -157,14 +157,14 @@ AVaFogLayer::AVaFogLayer(const FObjectInitializer& ObjectInitializer)
 		{
 			ConstructorHelpers::FObjectFinderOptional<UTexture2D> TextRenderTexture;
 			FConstructorStatics()
-				: TextRenderTexture(TEXT("/Engine/EditorResources/S_SkyLight"))
+				: TextRenderTexture(TEXT("/Engine/EditorResources/S_ExpoHeightFog"))
 			{
 			}
 		};
 		static FConstructorStatics ConstructorStatics;
 
 		SpriteComponent->Sprite = ConstructorStatics.TextRenderTexture.Get();
-		SpriteComponent->RelativeScale3D = FVector(1.f, 1.f, 1.f);
+		SpriteComponent->RelativeScale3D = FVector(0.5f, 0.5f, 0.5f);
 		SpriteComponent->SetupAttachment(RootComponent);
 		SpriteComponent->bIsScreenSizeScaled = true;
 		SpriteComponent->bAbsoluteScale = true;
@@ -196,9 +196,61 @@ AVaFogLayer::AVaFogLayer(const FObjectInitializer& ObjectInitializer)
 	bDebugBuffers = false;
 }
 
+void AVaFogLayer::PostLoad()
+{
+	InitInternalBuffers();
+
+	Super::PostLoad();
+}
+
+void AVaFogLayer::PostActorCreated()
+{
+	InitInternalBuffers();
+
+	Super::PostActorCreated();
+}
+
 void AVaFogLayer::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
+
+	if (UVaFogController::Get(this, EGetWorldErrorMode::LogAndReturnNull))
+	{
+		UVaFogController::Get(this)->OnFogLayerAdded(this);
+	}
+}
+
+void AVaFogLayer::Destroyed()
+{
+	if (UVaFogController::Get(this, EGetWorldErrorMode::LogAndReturnNull))
+	{
+		UVaFogController::Get(this)->OnFogLayerRemoved(this);
+	}
+
+	CleanupInternalBuffers();
+
+	Super::Destroyed();
+}
+
+void AVaFogLayer::BeginPlay()
+{
+	// Cache terrain buffer as pointer for fast access or create empty one
+	if (TerrainLayer)
+	{
+		TerrainBuffer = TerrainLayer->SourceBuffer;
+	}
+	else if (LayerChannel != EVaFogLayerChannel::Terrain)
+	{
+		UE_LOG(LogVaFog, Warning, TEXT("[%s] No Terrain layer found"), *VA_FUNC_LINE);
+	}
+
+	Super::BeginPlay();
+}
+
+void AVaFogLayer::InitInternalBuffers()
+{
+	// Force cleanup for re-init case
+	CleanupInternalBuffers();
 
 	// Prepare radius strategies
 	RadiusStrategies.Reserve(static_cast<int32>(EVaFogRadiusStrategy::Max));
@@ -255,14 +307,9 @@ void AVaFogLayer::PostInitializeComponents()
 		UpscaleTexture->AddressY = TextureAddress::TA_Clamp;
 		UpscaleTexture->UpdateResource();
 	}
-
-	if (UVaFogController::Get(this, EGetWorldErrorMode::LogAndReturnNull))
-	{
-		UVaFogController::Get(this)->OnFogLayerAdded(this);
-	}
 }
 
-void AVaFogLayer::Destroyed()
+void AVaFogLayer::CleanupInternalBuffers()
 {
 	if (SourceTexture)
 	{
@@ -272,11 +319,6 @@ void AVaFogLayer::Destroyed()
 	if (UpscaleTexture)
 	{
 		SourceTexture = nullptr;
-	}
-
-	if (UVaFogController::Get(this, EGetWorldErrorMode::LogAndReturnNull))
-	{
-		UVaFogController::Get(this)->OnFogLayerRemoved(this);
 	}
 
 	if (SourceBuffer)
@@ -290,24 +332,6 @@ void AVaFogLayer::Destroyed()
 		delete[] UpscaleBuffer;
 		UpscaleBuffer = nullptr;
 	}
-
-	Super::Destroyed();
-}
-
-void AVaFogLayer::BeginPlay()
-{
-	// @TODO Terrain layer shouldn't cache itself
-	// Cache terrain buffer as pointer for fast access or create empty one
-	if (TerrainLayer)
-	{
-		TerrainBuffer = TerrainLayer->SourceBuffer;
-	}
-	else
-	{
-		UE_LOG(LogVaFog, Warning, TEXT("[%s] No Terrain layer found"), *VA_FUNC_LINE);
-	}
-
-	Super::BeginPlay();
 }
 
 void AVaFogLayer::Tick(float DeltaTime)

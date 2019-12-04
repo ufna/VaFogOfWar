@@ -86,12 +86,19 @@ class VAFOGOFWAR_API AVaFogLayer : public AActor
 public:
 	AVaFogLayer(const FObjectInitializer& ObjectInitializer);
 
+	virtual void PostLoad() override;
+	virtual void PostActorCreated() override;
 	virtual void PostInitializeComponents() override;
 	virtual void Destroyed() override;
 	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaTime) override;
+
+protected:
+	virtual void InitInternalBuffers();
+	virtual void CleanupInternalBuffers();
 
 public:
+	virtual void Tick(float DeltaTime) override;
+
 	/** Update whole layer state */
 	void UpdateLayer();
 

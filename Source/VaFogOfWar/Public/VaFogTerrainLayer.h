@@ -9,7 +9,7 @@
 /** 
  * Pre-configured layer for handling terrain and obstacles
  */
-UCLASS()
+UCLASS(hideCategories = (FogOfWar))
 class VAFOGOFWAR_API AVaFogTerrainLayer : public AVaFogLayer
 {
 	GENERATED_BODY()
@@ -17,10 +17,8 @@ class VAFOGOFWAR_API AVaFogTerrainLayer : public AVaFogLayer
 public:
 	AVaFogTerrainLayer(const FObjectInitializer& ObjectInitializer);
 
-	virtual void PostLoad() override;
-
-	virtual void PostInitializeComponents() override;
-	virtual void Destroyed() override;
+	virtual void InitInternalBuffers() override;
+	virtual void CleanupInternalBuffers() override;
 
 	/** Get initial terrain state at location */
 	UFUNCTION(BlueprintCallable, Category = "VaFog|Terrain")
