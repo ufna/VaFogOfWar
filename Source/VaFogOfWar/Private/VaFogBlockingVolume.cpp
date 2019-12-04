@@ -3,6 +3,7 @@
 #include "VaFogBlockingVolume.h"
 
 #include "VaFogDefines.h"
+#include "VaFogLayer.h"
 
 #include "Components/BillboardComponent.h"
 #include "Components/BrushComponent.h"
@@ -44,22 +45,29 @@ AVaFogBlockingVolume::AVaFogBlockingVolume(const FObjectInitializer& ObjectIniti
 	bColored = true;
 }
 
-void AVaFogBlockingVolume::PostInitializeComponents()
+void AVaFogBlockingVolume::PostLoad()
 {
-	Super::PostInitializeComponents();
+	Super::PostLoad();
 
-	UpdateVolumeLayers();
+	UpdateTargetLayer();
 }
 
-void AVaFogBlockingVolume::Destroyed()
+void AVaFogBlockingVolume::PostActorCreated()
 {
-	Super::Destroyed();
+	Super::PostActorCreated();
+
+	UpdateTargetLayer();
+}
+
+void AVaFogBlockingVolume::OnConstruction(const FTransform& Transform)
+{
+	UpdateTargetLayer();
 }
 
 #if WITH_EDITOR
 void AVaFogBlockingVolume::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	UpdateVolumeLayers();
+	UpdateTargetLayer();
 
 	// @TODO Force volume brush to be square or use custom BrushBuilder
 
@@ -67,7 +75,7 @@ void AVaFogBlockingVolume::PostEditChangeProperty(FPropertyChangedEvent& Propert
 }
 #endif
 
-void AVaFogBlockingVolume::UpdateVolumeLayers()
+void AVaFogBlockingVolume::UpdateTargetLayer()
 {
-	// @TODO Check layer we should update and apply self into
+	UE_LOG(LogVaFog, Warning, TEXT("[%s] Volume [%s] Check layer we should update and apply self into"), *VA_FUNC_LINE, *GetName());
 }

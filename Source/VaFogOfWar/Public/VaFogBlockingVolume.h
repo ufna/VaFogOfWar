@@ -2,12 +2,12 @@
 
 #pragma once
 
-#include "VaFogLayer.h"
-
 #include "CoreMinimal.h"
 #include "GameFramework/Volume.h"
 
 #include "VaFogBlockingVolume.generated.h"
+
+class AVaFogLayer;
 
 UCLASS()
 class VAFOGOFWAR_API AVaFogBlockingVolume : public AVolume
@@ -15,8 +15,9 @@ class VAFOGOFWAR_API AVaFogBlockingVolume : public AVolume
 	GENERATED_UCLASS_BODY()
 
 	//~ Begin AActor Interface
-	virtual void PostInitializeComponents() override;
-	virtual void Destroyed() override;
+	virtual void PostLoad() override;
+	virtual void PostActorCreated() override;
+	virtual void OnConstruction(const FTransform& Transform) override;
 	//~ End AActor Interface
 
 #if WITH_EDITOR
@@ -30,10 +31,11 @@ private:
 #endif
 
 public:
-	UPROPERTY(EditAnywhere)
-	FComponentReference Layer;
+	/** Target layer to paint on */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere)
+	AVaFogLayer* Layer;
 
 protected:
 	/** Process volume bounds and apply its influence into terrain map */
-	void UpdateVolumeLayers();
+	void UpdateTargetLayer();
 };
