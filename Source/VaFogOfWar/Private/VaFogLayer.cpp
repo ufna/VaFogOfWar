@@ -216,6 +216,8 @@ void AVaFogLayer::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
+	UpdateLayer(true);
+
 	if (UVaFogController::Get(this, EGetWorldErrorMode::LogAndReturnNull))
 	{
 		UVaFogController::Get(this)->OnFogLayerAdded(this);
@@ -661,10 +663,20 @@ void AVaFogLayer::RemoveFogAgent(UVaFogAgentComponent* InFogAgent)
 
 void AVaFogLayer::AddFogBlockingVolume(AVaFogBlockingVolume* InFogBlockingVolume)
 {
+	FogBlockingVolumes.AddUnique(InFogBlockingVolume);
 }
 
 void AVaFogLayer::RemoveFogBlockingVolume(AVaFogBlockingVolume* InFogBlockingVolume)
 {
+	int32 NumRemoved = FogBlockingVolumes.Remove(InFogBlockingVolume);
+
+	// Force update layer state for blocking volumes
+	UpdateLayer(true);
+
+	if (NumRemoved == 0)
+	{
+		UE_LOG(LogVaFog, Error, TEXT("[%s] No cached data found for: %s"), *VA_FUNC_LINE, *InFogBlockingVolume->GetName());
+	}
 }
 
 void AVaFogLayer::UpdateTextureFromBuffer(UTexture2D* DestinationTexture, uint8* SrcBuffer, int32 SrcBufferLength, FUpdateTextureRegion2D& UpdateTextureRegion)

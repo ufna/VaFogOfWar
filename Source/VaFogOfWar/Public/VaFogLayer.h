@@ -158,11 +158,11 @@ public:
 
 protected:
 	/** Registered fog agents for layer */
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere)
 	TArray<UVaFogAgentComponent*> FogAgents;
 
 	/** Registered fog blocking volumes for layer */
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere)
 	TArray<AVaFogBlockingVolume*> FogBlockingVolumes;
 
 	/** Radius strategy instances */
