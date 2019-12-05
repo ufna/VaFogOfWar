@@ -42,6 +42,9 @@ void AVaFogTerrainLayer::InitInternalBuffers()
 {
 	Super::InitInternalBuffers();
 
+	InitialTerrainBuffer = new uint8[SourceBufferLength];
+	FMemory::Memset(InitialTerrainBuffer, ZeroBufferValue, SourceBufferLength);
+
 	LoadTerrainBufferFromTexture();
 }
 
@@ -54,6 +57,28 @@ void AVaFogTerrainLayer::CleanupInternalBuffers()
 	}
 
 	Super::CleanupInternalBuffers();
+}
+
+void AVaFogTerrainLayer::BeginPlay()
+{
+	// Apply all terrain blocking volumes into initial buffer
+	UpdateBlockingVolumes(InitialTerrainBuffer);
+
+	// Apply initial buffer to source
+	FMemory::Memcpy(SourceBuffer, InitialTerrainBuffer, SourceBufferLength);
+
+	// Link self buffer as source
+	TerrainBuffer = SourceBuffer;
+
+	Super::BeginPlay();
+}
+
+void AVaFogTerrainLayer::UpdateLayer(bool bForceFullUpdate)
+{
+	if (bForceFullUpdate)
+	{
+		UpdateBlockingVolumes(InitialTerrainBuffer);
+	}
 }
 
 EVaFogHeightLevel AVaFogTerrainLayer::GetHeightLevelAtLocation(const FVector& Location) const
@@ -79,16 +104,6 @@ void AVaFogTerrainLayer::LoadTerrainBufferFromTexture()
 {
 	UE_LOG(LogVaFog, Warning, TEXT("[%s] Update initial terrain buffer"), *VA_FUNC_LINE);
 
-	// Cleanup first
-	if (InitialTerrainBuffer)
-	{
-		delete[] InitialTerrainBuffer;
-		InitialTerrainBuffer = nullptr;
-	}
-
-	InitialTerrainBuffer = new uint8[SourceBufferLength];
-	FMemory::Memset(InitialTerrainBuffer, ZeroBufferValue, SourceBufferLength);
-
 	// Check initial state and load it if necessary
 	if (InitialTerrainTexture)
 	{
@@ -108,7 +123,6 @@ void AVaFogTerrainLayer::LoadTerrainBufferFromTexture()
 
 					if (TextureData)
 					{
-						FMemory::Memcpy(SourceBuffer, TextureData, SourceBufferLength);
 						FMemory::Memcpy(InitialTerrainBuffer, TextureData, SourceBufferLength);
 					}
 					else
@@ -151,8 +165,6 @@ void AVaFogTerrainLayer::LoadTerrainBufferFromTexture()
 						}
 					}
 
-					FMemory::Memcpy(SourceBuffer, InitialTerrainBuffer, SourceBufferLength);
-
 					UE_LOG(LogVaFog, Warning, TEXT("[%s] Layer [%s] Initial terrain buffer successfully loaded from Source texture"), *VA_FUNC_LINE, *GetName());
 				}
 
@@ -167,7 +179,4 @@ void AVaFogTerrainLayer::LoadTerrainBufferFromTexture()
 #endif
 		}
 	}
-
-	// Link self buffer as source
-	TerrainBuffer = SourceBuffer;
 }

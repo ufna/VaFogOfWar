@@ -49,14 +49,16 @@ void AVaFogBlockingVolume::PostLoad()
 {
 	Super::PostLoad();
 
-	UpdateTargetLayer();
+	// @TODO Layers can be initialized AFTER
+	//UpdateTargetLayer();
 }
 
 void AVaFogBlockingVolume::PostActorCreated()
 {
 	Super::PostActorCreated();
 
-	UpdateTargetLayer();
+	// @TODO Layers can be initialized AFTER
+	//UpdateTargetLayer();
 }
 
 void AVaFogBlockingVolume::OnConstruction(const FTransform& Transform)
@@ -78,4 +80,10 @@ void AVaFogBlockingVolume::PostEditChangeProperty(FPropertyChangedEvent& Propert
 void AVaFogBlockingVolume::UpdateTargetLayer()
 {
 	UE_LOG(LogVaFog, Warning, TEXT("[%s] Volume [%s] Check layer we should update and apply self into"), *VA_FUNC_LINE, *GetName());
+
+	if (Layer)
+	{
+		Layer->AddFogBlockingVolume(this);
+		Layer->UpdateLayer(true);
+	}
 }

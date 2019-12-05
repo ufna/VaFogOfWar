@@ -18,6 +18,7 @@ class UMaterialInterface;
 class AVaFogBoundsVolume;
 class UVaFogAgentComponent;
 class AVaFogTerrainLayer;
+class AVaFogBlockingVolume;
 
 struct FFogTexel2x2
 {
@@ -100,11 +101,17 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	/** Update whole layer state */
-	void UpdateLayer();
+	virtual void UpdateLayer(bool bForceFullUpdate = false);
 
 protected:
+	/** Flush buffers to textures */
+	void UpdateBuffers();
+
 	/** Process agents info and update FoW map */
 	void UpdateAgents();
+
+	/** Process volumes info and update FoW map */
+	void UpdateBlockingVolumes(uint8* TargetBuffer);
 
 	/** Update single obstacle agent as event-based process */
 	void UpdateObstacle(UVaFogAgentComponent* FogAgent, bool bObstacleIsActive, AVaFogBoundsVolume* FogVolume);
@@ -146,10 +153,17 @@ public:
 	void AddFogAgent(UVaFogAgentComponent* InFogAgent);
 	void RemoveFogAgent(UVaFogAgentComponent* InFogAgent);
 
+	void AddFogBlockingVolume(AVaFogBlockingVolume* InFogBlockingVolume);
+	void RemoveFogBlockingVolume(AVaFogBlockingVolume* InFogBlockingVolume);
+
 protected:
 	/** Registered fog agents for layer */
 	UPROPERTY()
 	TArray<UVaFogAgentComponent*> FogAgents;
+
+	/** Registered fog blocking volumes for layer */
+	UPROPERTY()
+	TArray<AVaFogBlockingVolume*> FogBlockingVolumes;
 
 	/** Radius strategy instances */
 	TMap<EVaFogRadiusStrategy, FVaFogRadiusStrategyRef> RadiusStrategies;

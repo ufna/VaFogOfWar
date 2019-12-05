@@ -3,6 +3,7 @@
 #include "VaFogLayer.h"
 
 #include "VaFogAgentComponent.h"
+#include "VaFogBlockingVolume.h"
 #include "VaFogBoundsVolume.h"
 #include "VaFogController.h"
 #include "VaFogDefines.h"
@@ -23,6 +24,7 @@
 #include <vector>
 
 DECLARE_CYCLE_STAT(TEXT("UpdateAgents"), STAT_UpdateAgents, STATGROUP_VaFog);
+DECLARE_CYCLE_STAT(TEXT("UpdateBlockingVolumes"), STAT_UpdateBlockingVolumes, STATGROUP_VaFog);
 DECLARE_CYCLE_STAT(TEXT("UpdateUpscaleBuffer"), STAT_UpdateUpscaleBuffer, STATGROUP_VaFog);
 DECLARE_CYCLE_STAT(TEXT("FetchTexelFromSource"), STAT_FetchTexelFromSource, STATGROUP_VaFog);
 DECLARE_CYCLE_STAT(TEXT("DrawVisionCircle"), STAT_DrawVisionCircle, STATGROUP_VaFog);
@@ -339,16 +341,17 @@ void AVaFogLayer::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	UpdateLayer();
+	UpdateBuffers();
 }
 
-void AVaFogLayer::UpdateLayer()
+void AVaFogLayer::UpdateLayer(bool bForceFullUpdate)
 {
-	// @FIXME Dirty hack for now
-	if (LayerChannel != EVaFogLayerChannel::Terrain)
-	{
-		UpdateAgents();
-	}
+	UpdateAgents();
+	UpdateBlockingVolumes(SourceBuffer);
+}
 
+void AVaFogLayer::UpdateBuffers()
+{
 	if (bDebugBuffers)
 	{
 		UpdateTextureFromBuffer(SourceTexture, SourceBuffer, SourceBufferLength, SourceUpdateRegion);
@@ -395,6 +398,13 @@ void AVaFogLayer::UpdateAgents()
 
 		DrawVisionCircle(DrawContext);
 	}
+}
+
+void AVaFogLayer::UpdateBlockingVolumes(uint8* TargetBuffer)
+{
+	SCOPE_CYCLE_COUNTER(STAT_UpdateBlockingVolumes);
+
+	check(TargetBuffer);
 }
 
 void AVaFogLayer::UpdateObstacle(UVaFogAgentComponent* FogAgent, bool bObstacleIsActive, AVaFogBoundsVolume* FogVolume)
@@ -647,6 +657,14 @@ void AVaFogLayer::RemoveFogAgent(UVaFogAgentComponent* InFogAgent)
 	{
 		UE_LOG(LogVaFog, Error, TEXT("[%s] No cached data found for: %s"), *VA_FUNC_LINE, *InFogAgent->GetName());
 	}
+}
+
+void AVaFogLayer::AddFogBlockingVolume(AVaFogBlockingVolume* InFogBlockingVolume)
+{
+}
+
+void AVaFogLayer::RemoveFogBlockingVolume(AVaFogBlockingVolume* InFogBlockingVolume)
+{
 }
 
 void AVaFogLayer::UpdateTextureFromBuffer(UTexture2D* DestinationTexture, uint8* SrcBuffer, int32 SrcBufferLength, FUpdateTextureRegion2D& UpdateTextureRegion)

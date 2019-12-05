@@ -20,6 +20,10 @@ public:
 	virtual void InitInternalBuffers() override;
 	virtual void CleanupInternalBuffers() override;
 
+	virtual void BeginPlay() override;
+
+	virtual void UpdateLayer(bool bForceFullUpdate) override;
+
 	/** Get initial terrain state at location */
 	UFUNCTION(BlueprintCallable, Category = "VaFog|Terrain")
 	EVaFogHeightLevel GetHeightLevelAtLocation(const FVector& Location) const;
