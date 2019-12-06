@@ -52,6 +52,8 @@ AVaFogBoundsVolume::AVaFogBoundsVolume(const FObjectInitializer& ObjectInitializ
 
 	CachedFogLayerResolution = 128;
 	LayerToTextureShift = 64;
+
+	DebugTime = 20.f;
 }
 
 void AVaFogBoundsVolume::OnConstruction(const FTransform& Transform)
@@ -167,7 +169,13 @@ void AVaFogBoundsVolume::DrawDebugGrid()
 
 			LayerPosition = VolumeTransform.TransformPosition(LayerPosition);
 
-			DrawDebugBox(GetWorld(), LayerPosition, GetCellExtent() * 0.95f, GetTransform().GetRotation(), FColor::Green, false, 10.f);
+			DrawDebugBox(GetWorld(), LayerPosition, GetCellExtent() * 0.95f, GetTransform().GetRotation(), FColor::Green, false, DebugTime);
 		}
 	}
+}
+
+FVector AVaFogBoundsVolume::SnapWorldToGrid(const FVector& InLocation) const
+{
+	FIntPoint GridPoint = TransformWorldToLayer(InLocation) + FIntPoint(-LayerToTextureShift + 1, 0);
+	return VolumeTransform.TransformPosition(FVector(LayerToTextureShift - GridPoint.Y, GridPoint.X, 0.f));
 }

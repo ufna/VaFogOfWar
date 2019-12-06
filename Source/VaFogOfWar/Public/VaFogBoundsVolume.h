@@ -68,6 +68,14 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Debug")
 	bool bDebugVolume;
 
+	/** Time to show debug grid */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Debug")
+	float DebugTime;
+
 protected:
 	void DrawDebugGrid();
+
+public:
+	/** Get nearest cell center */
+	FVector SnapWorldToGrid(const FVector& InLocation) const;
 };

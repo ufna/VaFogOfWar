@@ -443,6 +443,10 @@ void AVaFogLayer::UpdateBlockingVolumes()
 		BlockingVolume->GetActorBounds(false, VolumeOrigin, VolumeExtent);
 		DrawContext.RevealLevel = static_cast<uint8>(BlockingVolume->HeightLevel) << 1;
 
+		// Snap to bounds grid now
+		FVector OriginShift = BoundsVolume->SnapWorldToGrid(VolumeOrigin) - VolumeOrigin;
+		OriginShift.Z = 0;
+
 		// It's not perfect match but should work
 		int32 LineXSize = FMath::CeilToInt(VolumeExtent.X * 2.f / BoundsCellSizeX);
 		int32 LineYSize = FMath::CeilToInt(VolumeExtent.Y * 2.f / BoundsCellSizeY);
@@ -451,7 +455,7 @@ void AVaFogLayer::UpdateBlockingVolumes()
 		{
 			for (int32 j = 0; j < LineYSize; j++)
 			{
-				PointLocation = VolumeOrigin - VolumeExtent + FVector(i * BoundsCellSizeX, j * BoundsCellSizeY, 0.f);
+				PointLocation = VolumeOrigin - VolumeExtent + FVector(i * BoundsCellSizeX, j * BoundsCellSizeY, 0.f) + OriginShift;
 				PointLocation.Z = VolumeOrigin.Z;
 
 				if (BlockingVolume->EncompassesPoint(PointLocation))
