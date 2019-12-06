@@ -17,6 +17,9 @@ class VAFOGOFWAR_API AVaFogBoundsVolume : public AVolume
 
 	virtual void PostInitializeComponents() override;
 	virtual void Destroyed() override;
+
+	virtual bool ShouldTickIfViewportsOnly() const override;
+	virtual void Tick(float DeltaTime) override;
 	//~ End AActor Interface
 
 #if WITH_EDITOR
@@ -56,4 +59,15 @@ private:
 
 	/** World to layer transform */
 	FTransform VolumeTransform;
+
+	//////////////////////////////////////////////////////////////////////////
+	// Debug
+
+protected:
+	/** Show grid for this layer */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Debug")
+	bool bDebugVolume;
+
+protected:
+	void DrawDebugGrid();
 };

@@ -9,6 +9,7 @@
 
 #include "Components/BillboardComponent.h"
 #include "Components/BrushComponent.h"
+#include "DrawDebugHelpers.h"
 #include "Engine/CollisionProfile.h"
 #include "UObject/ConstructorHelpers.h"
 
@@ -38,6 +39,9 @@ AVaFogBoundsVolume::AVaFogBoundsVolume(const FObjectInitializer& ObjectInitializ
 		SpriteComponent->bAbsoluteScale = true;
 		SpriteComponent->bReceivesDecals = false;
 	}
+#endif
+#if WITH_EDITORONLY_DATA
+	PrimaryActorTick.bCanEverTick = true;
 #endif
 
 	GetBrushComponent()->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
@@ -74,6 +78,24 @@ void AVaFogBoundsVolume::Destroyed()
 	Super::Destroyed();
 
 	UVaFogController::Get(this)->OnFogBoundsRemoved(this);
+}
+
+bool AVaFogBoundsVolume::ShouldTickIfViewportsOnly() const
+{
+	return true;
+}
+
+void AVaFogBoundsVolume::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (bDebugVolume)
+	{
+		DrawDebugGrid();
+
+		// It's really not good idea to update it each tick
+		bDebugVolume = false;
+	}
 }
 
 #if WITH_EDITOR
@@ -128,4 +150,24 @@ int32 AVaFogBoundsVolume::ScaleDistanceToLayer(const int32 Distance) const
 {
 	// For now we assume that volume is square and use X only
 	return Distance / VolumeTransform.GetScale3D().X;
+}
+
+void AVaFogBoundsVolume::DrawDebugGrid()
+{
+	FIntPoint LayerPoint;
+	FVector LayerPosition = FVector::ZeroVector;
+
+	for (int32 i = 0; i < CachedFogLayerResolution; i++)
+	{
+		for (int32 j = 0; j < CachedFogLayerResolution; j++)
+		{
+			LayerPosition.X = i - LayerToTextureShift;
+			LayerPosition.Y = j - LayerToTextureShift + 1;
+			LayerPosition.Z = 0;
+
+			LayerPosition = VolumeTransform.TransformPosition(LayerPosition);
+
+			DrawDebugBox(GetWorld(), LayerPosition, GetCellExtent() * 0.95f, GetTransform().GetRotation(), FColor::Green, false, 10.f);
+		}
+	}
 }

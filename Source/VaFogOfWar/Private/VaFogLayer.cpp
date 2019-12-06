@@ -461,12 +461,12 @@ void AVaFogLayer::UpdateBlockingVolumes()
 
 					if (BlockingVolume->bDebugVolume)
 					{
-						DrawDebugBox(GetWorld(), PointLocation, BoundsVolume->GetCellExtent() * 0.95f, FColor::Red, true);
+						DrawDebugBox(GetWorld(), PointLocation, BoundsVolume->GetCellExtent() * 0.95f, BoundsVolume->GetTransform().GetRotation(), FColor::Red, true);
 					}
 				}
 				else if (BlockingVolume->bDebugVolume)
 				{
-					DrawDebugBox(GetWorld(), PointLocation, BoundsVolume->GetCellExtent() * 0.95f, FColor::Yellow, true);
+					DrawDebugBox(GetWorld(), PointLocation, BoundsVolume->GetCellExtent() * 0.95f, BoundsVolume->GetTransform().GetRotation(), FColor::Yellow, true);
 				}
 			}
 		}
