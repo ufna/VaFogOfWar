@@ -50,6 +50,13 @@ AVaFogBoundsVolume::AVaFogBoundsVolume(const FObjectInitializer& ObjectInitializ
 	LayerToTextureShift = 64;
 }
 
+void AVaFogBoundsVolume::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+
+	UpdateVolumeTransform();
+}
+
 void AVaFogBoundsVolume::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
@@ -94,18 +101,20 @@ void AVaFogBoundsVolume::UpdateVolumeTransform()
 
 	VolumeTransform.SetRotation(GetBrushComponent()->GetComponentTransform().GetRotation());
 	VolumeTransform.SetLocation(GetBrushComponent()->GetComponentTransform().GetLocation());
+
+	// Calculate and cache cell extent
+	float CellExtentX = GetBrushComponent()->Bounds.BoxExtent.X / CachedFogLayerResolution;
+	float CellExtentY = GetBrushComponent()->Bounds.BoxExtent.Y / CachedFogLayerResolution;
+	CachedCellExtent = FVector(CellExtentX, CellExtentY, 0.f);
+}
+
+FVector AVaFogBoundsVolume::GetCellExtent() const
+{
+	return CachedCellExtent;
 }
 
 FIntPoint AVaFogBoundsVolume::TransformWorldToLayer(const FVector& AgentLocation) const
 {
-#if WITH_EDITORONLY_DATA
-	// Force update internal settings in case of call from other actor construction script, etc.
-	if (!IsActorInitialized())
-	{
-		const_cast<AVaFogBoundsVolume*>(this)->UpdateVolumeTransform();
-	}
-#endif
-
 	// First transform position into volume local coordinates (scaled with fog rt resolution)
 	FVector LayerPosition = VolumeTransform.InverseTransformPosition(AgentLocation);
 

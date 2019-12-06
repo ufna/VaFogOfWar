@@ -9,7 +9,7 @@
 /** 
  * Pre-configured layer for handling terrain and obstacles
  */
-UCLASS(hideCategories = (FogOfWar))
+UCLASS()
 class VAFOGOFWAR_API AVaFogTerrainLayer : public AVaFogLayer
 {
 	GENERATED_BODY()

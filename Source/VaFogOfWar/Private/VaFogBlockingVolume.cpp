@@ -38,11 +38,13 @@ AVaFogBlockingVolume::AVaFogBlockingVolume(const FObjectInitializer& ObjectIniti
 	}
 #endif
 
-	GetBrushComponent()->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
+	//GetBrushComponent()->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
 	GetBrushComponent()->Mobility = EComponentMobility::Static;
 
 	BrushColor = FColor(0, 255, 0, 255);
 	bColored = true;
+
+	HeightLevel = EVaFogHeightLevel::HL_3;
 }
 
 void AVaFogBlockingVolume::PostLoad()
@@ -72,10 +74,26 @@ void AVaFogBlockingVolume::OnConstruction(const FTransform& Transform)
 #endif
 }
 
+void AVaFogBlockingVolume::Destroyed()
+{
+	if (Layer)
+	{
+		Layer->RemoveFogBlockingVolume(this);
+	}
+
+	Super::Destroyed();
+}
+
 #if WITH_EDITOR
 void AVaFogBlockingVolume::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	UpdateTargetLayer();
+
+	// Force update layer state for realtime preview
+	if (Layer)
+	{
+		Layer->UpdateLayer(true);
+	}
 
 	// @TODO Force volume brush to be square or use custom BrushBuilder
 

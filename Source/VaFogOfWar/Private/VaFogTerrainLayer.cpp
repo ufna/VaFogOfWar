@@ -61,15 +61,13 @@ void AVaFogTerrainLayer::CleanupInternalBuffers()
 
 void AVaFogTerrainLayer::BeginPlay()
 {
-	// Apply all terrain blocking volumes into initial buffer
-	UpdateBlockingVolumes(InitialTerrainBuffer);
-
 	// Apply initial buffer to source
 	FMemory::Memcpy(SourceBuffer, InitialTerrainBuffer, SourceBufferLength);
 
 	// Link self buffer as source
 	TerrainBuffer = SourceBuffer;
 
+	// Apply all terrain blocking volumes into initial buffer
 	Super::BeginPlay();
 }
 
@@ -77,20 +75,19 @@ void AVaFogTerrainLayer::UpdateLayer(bool bForceFullUpdate)
 {
 	if (bForceFullUpdate)
 	{
-		UpdateBlockingVolumes(InitialTerrainBuffer);
+		UpdateBlockingVolumes();
 	}
 }
 
 EVaFogHeightLevel AVaFogTerrainLayer::GetHeightLevelAtLocation(const FVector& Location) const
 {
-	auto FogVolume = UVaFogController::Get(this)->GetFogVolume();
-	if (FogVolume)
+	if (!BoundsVolume)
 	{
-		return GetHeightLevelAtAgentLocation(FogVolume->TransformWorldToLayer(Location));
+		UE_LOG(LogVaFog, Warning, TEXT("[%s] Fog bounds volume is not registered yet, return default height level"), *VA_FUNC_LINE);
+		return EVaFogHeightLevel::HL_1;
 	}
 
-	UE_LOG(LogVaFog, Warning, TEXT("[%s] Fog bounds volume is not registered yet, return default height level"), *VA_FUNC_LINE);
-	return EVaFogHeightLevel::HL_1;
+	return GetHeightLevelAtAgentLocation(BoundsVolume->TransformWorldToLayer(Location));
 }
 
 EVaFogHeightLevel AVaFogTerrainLayer::GetHeightLevelAtAgentLocation(const FIntPoint& AgentLocation) const

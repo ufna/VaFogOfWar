@@ -13,6 +13,8 @@ class VAFOGOFWAR_API AVaFogBoundsVolume : public AVolume
 	GENERATED_UCLASS_BODY()
 
 	//~ Begin AActor Interface
+	virtual void OnConstruction(const FTransform& Transform) override;
+
 	virtual void PostInitializeComponents() override;
 	virtual void Destroyed() override;
 	//~ End AActor Interface
@@ -33,6 +35,10 @@ protected:
 	void UpdateVolumeTransform();
 
 public:
+	/** Get fog cell size in units */
+	UFUNCTION(BlueprintCallable, Category = "VaFog|Bounds")
+	FVector GetCellExtent() const;
+
 	/** Convert world location of vector to layer one */
 	UFUNCTION(BlueprintCallable, Category = "VaFog|Bounds")
 	FIntPoint TransformWorldToLayer(const FVector& AgentLocation) const;
@@ -43,6 +49,7 @@ public:
 
 private:
 	int32 CachedFogLayerResolution;
+	FVector CachedCellExtent;
 
 	/** Shift that should be applied to transform layer coordinates into texture coordinates */
 	int32 LayerToTextureShift;

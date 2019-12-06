@@ -216,8 +216,6 @@ void AVaFogLayer::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	UpdateLayer(true);
-
 	if (UVaFogController::Get(this, EGetWorldErrorMode::LogAndReturnNull))
 	{
 		UVaFogController::Get(this)->OnFogLayerAdded(this);
@@ -247,6 +245,8 @@ void AVaFogLayer::BeginPlay()
 	{
 		UE_LOG(LogVaFog, Warning, TEXT("[%s] No Terrain layer found"), *VA_FUNC_LINE);
 	}
+
+	UpdateLayer(true);
 
 	Super::BeginPlay();
 }
@@ -349,7 +349,7 @@ void AVaFogLayer::Tick(float DeltaTime)
 void AVaFogLayer::UpdateLayer(bool bForceFullUpdate)
 {
 	UpdateAgents();
-	UpdateBlockingVolumes(SourceBuffer);
+	UpdateBlockingVolumes();
 }
 
 void AVaFogLayer::UpdateBuffers()
@@ -376,10 +376,15 @@ void AVaFogLayer::UpdateAgents()
 {
 	SCOPE_CYCLE_COUNTER(STAT_UpdateAgents);
 
-	auto FogVolume = UVaFogController::Get(this)->GetFogVolume();
+	if (!BoundsVolume)
+	{
+		UE_LOG(LogVaFog, Warning, TEXT("[%s] No bounds volume is set"), *VA_FUNC_LINE);
+		return;
+	}
+
 	for (auto FogAgent : FogAgents)
 	{
-		FIntPoint AgentLocation = FogVolume->TransformWorldToLayer(FogAgent->GetComponentTransform().GetLocation());
+		FIntPoint AgentLocation = BoundsVolume->TransformWorldToLayer(FogAgent->GetComponentTransform().GetLocation());
 		//UE_LOG(LogVaFog, Warning, TEXT("[%s] Agent [%s] location: %s"), *VA_FUNC_LINE, *FogAgent->GetName(), *AgentLocation.ToString());
 
 		if (bDebugAgents)
@@ -393,7 +398,7 @@ void AVaFogLayer::UpdateAgents()
 		DrawContext.TargetBuffer = SourceBuffer;
 		DrawContext.CenterX = AgentLocation.X;
 		DrawContext.CenterY = AgentLocation.Y;
-		DrawContext.Radius = FogVolume->ScaleDistanceToLayer(FogAgent->VisionRadius);
+		DrawContext.Radius = BoundsVolume->ScaleDistanceToLayer(FogAgent->VisionRadius);
 		DrawContext.RadiusStrategy = FogAgent->RadiusStrategy;
 		DrawContext.HeightLevel = FogAgent->HeightLevel;
 		DrawContext.RevealLevel = 0xFF;
@@ -402,26 +407,90 @@ void AVaFogLayer::UpdateAgents()
 	}
 }
 
-void AVaFogLayer::UpdateBlockingVolumes(uint8* TargetBuffer)
+void AVaFogLayer::UpdateBlockingVolumes()
 {
 	SCOPE_CYCLE_COUNTER(STAT_UpdateBlockingVolumes);
 
-	check(TargetBuffer);
+	// Flush all debug
+	FlushPersistentDebugLines(GetWorld());
+
+	if (!BoundsVolume)
+	{
+		UE_LOG(LogVaFog, Warning, TEXT("[%s] No bounds volume is set"), *VA_FUNC_LINE);
+		return;
+	}
+
+	float BoundsCellSizeX = BoundsVolume->GetCellExtent().X * 2;
+	float BoundsCellSizeY = BoundsVolume->GetCellExtent().Y * 2;
+
+	FFogDrawContext DrawContext;
+	DrawContext.TargetBuffer = SourceBuffer;
+
+	FVector PointLocation = FVector::ZeroVector;
+	FIntPoint AgentLocation(0, 0);
+
+	for (auto BlockingVolume : FogBlockingVolumes)
+	{
+#if WITH_EDITORONLY_DATA
+		if (!BlockingVolume)
+		{
+			UE_LOG(LogVaFog, Error, TEXT("[%s] BlockingVolume is nullptr: cleanup layer volumes list!"), *VA_FUNC_LINE);
+		}
+#endif
+
+		FVector VolumeOrigin = FVector::ZeroVector;
+		FVector VolumeExtent = FVector::ZeroVector;
+		BlockingVolume->GetActorBounds(false, VolumeOrigin, VolumeExtent);
+		DrawContext.RevealLevel = static_cast<uint8>(BlockingVolume->HeightLevel) << 1;
+
+		// It's not perfect match but should work
+		int32 LineXSize = FMath::CeilToInt(VolumeExtent.X * 2.f / BoundsCellSizeX);
+		int32 LineYSize = FMath::CeilToInt(VolumeExtent.Y * 2.f / BoundsCellSizeY);
+
+		for (int32 i = 0; i < LineXSize; i++)
+		{
+			for (int32 j = 0; j < LineYSize; j++)
+			{
+				PointLocation = VolumeOrigin - VolumeExtent + FVector(i * BoundsCellSizeX, j * BoundsCellSizeY, 0.f);
+				PointLocation.Z = VolumeOrigin.Z;
+
+				if (BlockingVolume->EncompassesPoint(PointLocation))
+				{
+					AgentLocation = BoundsVolume->TransformWorldToLayer(PointLocation);
+					Reveal(DrawContext, AgentLocation.X, AgentLocation.Y);
+
+					if (BlockingVolume->bDebugVolume)
+					{
+						DrawDebugBox(GetWorld(), PointLocation, BoundsVolume->GetCellExtent() * 0.95f, FColor::Red, true);
+					}
+				}
+				else if (BlockingVolume->bDebugVolume)
+				{
+					DrawDebugBox(GetWorld(), PointLocation, BoundsVolume->GetCellExtent() * 0.95f, FColor::Yellow, true);
+				}
+			}
+		}
+	}
 }
 
-void AVaFogLayer::UpdateObstacle(UVaFogAgentComponent* FogAgent, bool bObstacleIsActive, AVaFogBoundsVolume* FogVolume)
+void AVaFogLayer::UpdateObstacle(UVaFogAgentComponent* FogAgent, bool bObstacleIsActive)
 {
 	check(FogAgent);
 	check(FogAgent->VisionRadius >= 0);
-	check(FogVolume);
 
-	FIntPoint AgentLocation = FogVolume->TransformWorldToLayer(FogAgent->GetComponentTransform().GetLocation());
+	if (!BoundsVolume)
+	{
+		UE_LOG(LogVaFog, Warning, TEXT("[%s] No bounds volume is set"), *VA_FUNC_LINE);
+		return;
+	}
+
+	FIntPoint AgentLocation = BoundsVolume->TransformWorldToLayer(FogAgent->GetComponentTransform().GetLocation());
 
 	FFogDrawContext DrawContext;
 	DrawContext.TargetBuffer = SourceBuffer;
 	DrawContext.CenterX = AgentLocation.X;
 	DrawContext.CenterY = AgentLocation.Y;
-	DrawContext.Radius = FogVolume->ScaleDistanceToLayer(FogAgent->VisionRadius);
+	DrawContext.Radius = BoundsVolume->ScaleDistanceToLayer(FogAgent->VisionRadius);
 	DrawContext.RadiusStrategy = FogAgent->RadiusStrategy;
 	DrawContext.HeightLevel = EVaFogHeightLevel(static_cast<uint8>(FogAgent->HeightLevel) << 1);
 	DrawContext.RevealLevel = (bObstacleIsActive) ? (static_cast<uint8>(FogAgent->HeightLevel) << 1) : (static_cast<uint8>(FogAgent->HeightLevel));
@@ -642,7 +711,7 @@ void AVaFogLayer::AddFogAgent(UVaFogAgentComponent* InFogAgent)
 
 	if (LayerChannel == EVaFogLayerChannel::Terrain)
 	{
-		UpdateObstacle(InFogAgent, true, UVaFogController::Get(this)->GetFogVolume());
+		UpdateObstacle(InFogAgent, true);
 	}
 }
 
@@ -652,7 +721,7 @@ void AVaFogLayer::RemoveFogAgent(UVaFogAgentComponent* InFogAgent)
 
 	if (LayerChannel == EVaFogLayerChannel::Terrain)
 	{
-		UpdateObstacle(InFogAgent, false, UVaFogController::Get(this)->GetFogVolume());
+		UpdateObstacle(InFogAgent, false);
 	}
 
 	if (NumRemoved == 0)

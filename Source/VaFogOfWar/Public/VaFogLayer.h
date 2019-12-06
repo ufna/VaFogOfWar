@@ -111,10 +111,10 @@ protected:
 	void UpdateAgents();
 
 	/** Process volumes info and update FoW map */
-	void UpdateBlockingVolumes(uint8* TargetBuffer);
+	void UpdateBlockingVolumes();
 
 	/** Update single obstacle agent as event-based process */
-	void UpdateObstacle(UVaFogAgentComponent* FogAgent, bool bObstacleIsActive, AVaFogBoundsVolume* FogVolume);
+	void UpdateObstacle(UVaFogAgentComponent* FogAgent, bool bObstacleIsActive);
 
 	/** Process manual upscaling from 128 to 512 */
 	void UpdateUpscaleBuffer();
@@ -142,12 +142,16 @@ private:
 
 public:
 	/** Defines which refresh logic will be used: permanent drawing or runtime visible area */
-	UPROPERTY(EditAnywhere, Category = "Fog of War")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Fog of War")
 	EVaFogLayerChannel LayerChannel;
 
 	/** Layer that provides world information */
-	UPROPERTY(EditAnywhere, Category = "Fog of War")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Fog of War")
 	AVaFogTerrainLayer* TerrainLayer;
+
+	/** Fog bounds volume we're linked in */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Fog of War")
+	AVaFogBoundsVolume* BoundsVolume;
 
 public:
 	void AddFogAgent(UVaFogAgentComponent* InFogAgent);

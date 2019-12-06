@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "VaFogTypes.h"
+
 #include "CoreMinimal.h"
 #include "GameFramework/Volume.h"
 
@@ -18,6 +20,7 @@ class VAFOGOFWAR_API AVaFogBlockingVolume : public AVolume
 	virtual void PostLoad() override;
 	virtual void PostActorCreated() override;
 	virtual void OnConstruction(const FTransform& Transform) override;
+	virtual void Destroyed() override;
 	//~ End AActor Interface
 
 #if WITH_EDITOR
@@ -35,7 +38,19 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere)
 	AVaFogLayer* Layer;
 
+	/** Height level where agent is standing */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	EVaFogHeightLevel HeightLevel;
+
 protected:
 	/** Process volume bounds and apply its influence into terrain map */
 	void UpdateTargetLayer();
+
+	//////////////////////////////////////////////////////////////////////////
+	// Debug
+
+public:
+	/** Debug fog layer affect */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Debug")
+	bool bDebugVolume;
 };
