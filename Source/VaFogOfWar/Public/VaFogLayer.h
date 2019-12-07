@@ -161,6 +161,12 @@ public:
 	void RemoveFogBlockingVolume(AVaFogBlockingVolume* InFogBlockingVolume);
 
 protected:
+	virtual void OnAddFogAgent(UVaFogAgentComponent* InFogAgent){};
+	virtual void OnRemoveFogAgent(UVaFogAgentComponent* InFogAgent){};
+	virtual void OnAddFogBlockingVolume(AVaFogBlockingVolume* InFogBlockingVolume){};
+	virtual void OnRemoveFogBlockingVolume(AVaFogBlockingVolume* InFogBlockingVolume){};
+
+protected:
 	/** Registered fog agents for layer */
 	UPROPERTY(VisibleAnywhere)
 	TArray<UVaFogAgentComponent*> FogAgents;

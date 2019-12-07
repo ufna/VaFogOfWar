@@ -76,6 +76,7 @@ void AVaFogTerrainLayer::UpdateLayer(bool bForceFullUpdate)
 	if (bForceFullUpdate)
 	{
 		UpdateBlockingVolumes();
+		UpdateAgents();
 	}
 }
 
@@ -176,4 +177,15 @@ void AVaFogTerrainLayer::LoadTerrainBufferFromTexture()
 #endif
 		}
 	}
+}
+
+void AVaFogTerrainLayer::OnRemoveFogAgent(UVaFogAgentComponent* InFogAgent)
+{
+	UpdateObstacle(InFogAgent, false);
+}
+
+void AVaFogTerrainLayer::OnRemoveFogBlockingVolume(AVaFogBlockingVolume* InFogBlockingVolume)
+{
+	// Force update layer state for blocking volumes
+	UpdateLayer(true);
 }

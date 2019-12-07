@@ -214,8 +214,6 @@ void AVaFogLayer::PostActorCreated()
 
 void AVaFogLayer::PostInitializeComponents()
 {
-	UpdateLayer(true);
-
 	Super::PostInitializeComponents();
 
 	if (UVaFogController::Get(this, EGetWorldErrorMode::LogAndReturnNull))
@@ -238,6 +236,8 @@ void AVaFogLayer::Destroyed()
 
 void AVaFogLayer::BeginPlay()
 {
+	UpdateLayer(true);
+
 	// Cache terrain buffer as pointer for fast access or create empty one
 	if (TerrainLayer)
 	{
@@ -348,8 +348,8 @@ void AVaFogLayer::Tick(float DeltaTime)
 
 void AVaFogLayer::UpdateLayer(bool bForceFullUpdate)
 {
-	UpdateAgents();
 	UpdateBlockingVolumes();
+	UpdateAgents();
 }
 
 void AVaFogLayer::UpdateBuffers()
@@ -400,8 +400,17 @@ void AVaFogLayer::UpdateAgents()
 		DrawContext.CenterY = AgentLocation.Y;
 		DrawContext.Radius = BoundsVolume->ScaleDistanceToLayer(FogAgent->VisionRadius);
 		DrawContext.RadiusStrategy = FogAgent->RadiusStrategy;
-		DrawContext.HeightLevel = FogAgent->HeightLevel;
-		DrawContext.RevealLevel = 0xFF;
+
+		if (LayerChannel == EVaFogLayerChannel::Terrain)
+		{
+			DrawContext.HeightLevel = EVaFogHeightLevel(static_cast<uint8>(FogAgent->HeightLevel) << 1);
+			DrawContext.RevealLevel = static_cast<uint8>(FogAgent->HeightLevel) << 1;
+		}
+		else
+		{
+			DrawContext.HeightLevel = FogAgent->HeightLevel;
+			DrawContext.RevealLevel = 0xFF;
+		}
 
 		DrawVisionCircle(DrawContext);
 	}
@@ -441,7 +450,7 @@ void AVaFogLayer::UpdateBlockingVolumes()
 		FVector VolumeOrigin = FVector::ZeroVector;
 		FVector VolumeExtent = FVector::ZeroVector;
 		BlockingVolume->GetActorBounds(false, VolumeOrigin, VolumeExtent);
-		DrawContext.RevealLevel = static_cast<uint8>(BlockingVolume->HeightLevel) << 1;
+		DrawContext.RevealLevel = static_cast<uint8>(BlockingVolume->HeightLevel);
 
 		// Snap to bounds grid now
 		FVector OriginShift = BoundsVolume->SnapWorldToGrid(VolumeOrigin) - VolumeOrigin;
@@ -713,20 +722,14 @@ void AVaFogLayer::AddFogAgent(UVaFogAgentComponent* InFogAgent)
 {
 	FogAgents.AddUnique(InFogAgent);
 
-	if (LayerChannel == EVaFogLayerChannel::Terrain)
-	{
-		UpdateObstacle(InFogAgent, true);
-	}
+	OnAddFogAgent(InFogAgent);
 }
 
 void AVaFogLayer::RemoveFogAgent(UVaFogAgentComponent* InFogAgent)
 {
 	int32 NumRemoved = FogAgents.Remove(InFogAgent);
 
-	if (LayerChannel == EVaFogLayerChannel::Terrain)
-	{
-		UpdateObstacle(InFogAgent, false);
-	}
+	OnRemoveFogAgent(InFogAgent);
 
 	if (NumRemoved == 0)
 	{
@@ -737,14 +740,15 @@ void AVaFogLayer::RemoveFogAgent(UVaFogAgentComponent* InFogAgent)
 void AVaFogLayer::AddFogBlockingVolume(AVaFogBlockingVolume* InFogBlockingVolume)
 {
 	FogBlockingVolumes.AddUnique(InFogBlockingVolume);
+
+	OnAddFogBlockingVolume(InFogBlockingVolume);
 }
 
 void AVaFogLayer::RemoveFogBlockingVolume(AVaFogBlockingVolume* InFogBlockingVolume)
 {
 	int32 NumRemoved = FogBlockingVolumes.Remove(InFogBlockingVolume);
 
-	// Force update layer state for blocking volumes
-	UpdateLayer(true);
+	OnRemoveFogBlockingVolume(InFogBlockingVolume);
 
 	if (NumRemoved == 0)
 	{
