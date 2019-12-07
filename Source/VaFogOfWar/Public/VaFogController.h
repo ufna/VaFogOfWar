@@ -21,24 +21,16 @@ public:
 	/** Direct access to fog controller */
 	static UVaFogController* Get(const UObject* WorldContextObject, EGetWorldErrorMode ErrorMode = EGetWorldErrorMode::Assert);
 
-	void OnFogBoundsAdded(AVaFogBoundsVolume* InFogVolume);
-	void OnFogBoundsRemoved(AVaFogBoundsVolume* InFogVolume);
-
 	void OnFogLayerAdded(AVaFogLayer* InFogLayer);
 	void OnFogLayerRemoved(AVaFogLayer* InFogLayer);
 
 	void OnFogAgentAdded(UVaFogAgentComponent* InFogAgent);
 	void OnFogAgentRemoved(UVaFogAgentComponent* InFogAgent);
 
-	AVaFogBoundsVolume* GetFogVolume() const;
-
 	/** Get fog layer by its channel */
 	AVaFogLayer* GetFogLayer(EVaFogLayerChannel LayerChannel) const;
 
 private:
-	/** Currently only one fog volume at time is supported */
-	TWeakObjectPtr<AVaFogBoundsVolume> FogVolume;
-
 	/** Registered fog layers */
 	TArray<TWeakObjectPtr<AVaFogLayer>> FogLayers;
 };

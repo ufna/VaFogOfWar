@@ -23,28 +23,6 @@ UVaFogController* UVaFogController::Get(const UObject* WorldContextObject, EGetW
 	return nullptr;
 }
 
-void UVaFogController::OnFogBoundsAdded(AVaFogBoundsVolume* InFogVolume)
-{
-	FogVolume = InFogVolume;
-
-	UE_LOG(LogVaFog, Log, TEXT("[%s] Added: %s"), *VA_FUNC_LINE, *InFogVolume->GetName());
-}
-
-void UVaFogController::OnFogBoundsRemoved(AVaFogBoundsVolume* InFogVolume)
-{
-	if (FogVolume == InFogVolume)
-	{
-		FogVolume = nullptr;
-
-		UE_LOG(LogVaFog, Log, TEXT("[%s] Removed: %s"), *VA_FUNC_LINE, *InFogVolume->GetName());
-	}
-	else
-	{
-		UE_LOG(LogVaFog, Error, TEXT("[%s] Current fog volume is different from we're trying to remove: Current: %s, Removing: %s"),
-			*VA_FUNC_LINE, (FogVolume != nullptr) ? *FogVolume->GetName() : TEXT("invalid"), *InFogVolume->GetName());
-	}
-}
-
 void UVaFogController::OnFogLayerAdded(AVaFogLayer* InFogLayer)
 {
 	FogLayers.AddUnique(InFogLayer);
@@ -91,11 +69,6 @@ void UVaFogController::OnFogAgentRemoved(UVaFogAgentComponent* InFogAgent)
 			UE_LOG(LogVaFog, Log, TEXT("[%s] Removed: %s"), *VA_FUNC_LINE, *InFogAgent->GetName());
 		}
 	}
-}
-
-AVaFogBoundsVolume* UVaFogController::GetFogVolume() const
-{
-	return (FogVolume.IsValid()) ? FogVolume.Get() : nullptr;
 }
 
 AVaFogLayer* UVaFogController::GetFogLayer(EVaFogLayerChannel LayerChannel) const

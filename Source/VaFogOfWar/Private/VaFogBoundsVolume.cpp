@@ -68,18 +68,11 @@ void AVaFogBoundsVolume::PostInitializeComponents()
 	Super::PostInitializeComponents();
 
 	UpdateVolumeTransform();
-
-	if (UVaFogController::Get(this))
-	{
-		UVaFogController::Get(this)->OnFogBoundsAdded(this);
-	}
 }
 
 void AVaFogBoundsVolume::Destroyed()
 {
 	Super::Destroyed();
-
-	UVaFogController::Get(this)->OnFogBoundsRemoved(this);
 }
 
 bool AVaFogBoundsVolume::ShouldTickIfViewportsOnly() const
