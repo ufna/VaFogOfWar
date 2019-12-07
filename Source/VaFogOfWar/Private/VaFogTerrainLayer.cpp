@@ -46,6 +46,9 @@ void AVaFogTerrainLayer::InitInternalBuffers()
 	FMemory::Memset(InitialTerrainBuffer, ZeroBufferValue, SourceBufferLength);
 
 	LoadTerrainBufferFromTexture();
+
+	// Apply initial buffer to source
+	FMemory::Memcpy(SourceBuffer, InitialTerrainBuffer, SourceBufferLength);
 }
 
 void AVaFogTerrainLayer::CleanupInternalBuffers()
@@ -61,9 +64,6 @@ void AVaFogTerrainLayer::CleanupInternalBuffers()
 
 void AVaFogTerrainLayer::BeginPlay()
 {
-	// Apply initial buffer to source
-	FMemory::Memcpy(SourceBuffer, InitialTerrainBuffer, SourceBufferLength);
-
 	// Link self buffer as source
 	TerrainBuffer = SourceBuffer;
 
@@ -93,7 +93,7 @@ EVaFogHeightLevel AVaFogTerrainLayer::GetHeightLevelAtLocation(const FVector& Lo
 EVaFogHeightLevel AVaFogTerrainLayer::GetHeightLevelAtAgentLocation(const FIntPoint& AgentLocation) const
 {
 	// @TODO Initial values should be valided before use https://github.com/ufna/VaFogOfWar/issues/68
-	uint8 HeightLevelValue = InitialTerrainBuffer[AgentLocation.Y * SourceW + AgentLocation.X];
+	uint8 HeightLevelValue = SourceBuffer[AgentLocation.Y * SourceW + AgentLocation.X];
 	return static_cast<EVaFogHeightLevel>(FMath::Clamp(FMath::RoundUpToPowerOfTwo(HeightLevelValue), static_cast<uint32>(EVaFogHeightLevel::HL_1), static_cast<uint32>(EVaFogHeightLevel::HL_8)));
 }
 

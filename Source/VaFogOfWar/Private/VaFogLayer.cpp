@@ -214,6 +214,8 @@ void AVaFogLayer::PostActorCreated()
 
 void AVaFogLayer::PostInitializeComponents()
 {
+	UpdateLayer(true);
+
 	Super::PostInitializeComponents();
 
 	if (UVaFogController::Get(this, EGetWorldErrorMode::LogAndReturnNull))
@@ -245,8 +247,6 @@ void AVaFogLayer::BeginPlay()
 	{
 		UE_LOG(LogVaFog, Warning, TEXT("[%s] No Terrain layer found"), *VA_FUNC_LINE);
 	}
-
-	UpdateLayer(true);
 
 	Super::BeginPlay();
 }
