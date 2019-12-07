@@ -179,6 +179,11 @@ void AVaFogTerrainLayer::LoadTerrainBufferFromTexture()
 	}
 }
 
+void AVaFogTerrainLayer::OnAddFogAgent(UVaFogAgentComponent* InFogAgent)
+{
+	UpdateObstacle(InFogAgent, true);
+}
+
 void AVaFogTerrainLayer::OnRemoveFogAgent(UVaFogAgentComponent* InFogAgent)
 {
 	UpdateObstacle(InFogAgent, false);

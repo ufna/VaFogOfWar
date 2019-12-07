@@ -27,11 +27,6 @@ UVaFogAgentComponent::UVaFogAgentComponent(const FObjectInitializer& ObjectIniti
 void UVaFogAgentComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
-
-	if (bAgentEnabled)
-	{
-		UVaFogController::Get(this)->OnFogAgentAdded(this);
-	}
 }
 
 void UVaFogAgentComponent::UninitializeComponent()
@@ -41,6 +36,11 @@ void UVaFogAgentComponent::UninitializeComponent()
 
 void UVaFogAgentComponent::BeginPlay()
 {
+	if (bAgentEnabled)
+	{
+		UVaFogController::Get(this)->OnFogAgentAdded(this);
+	}
+
 	Super::BeginPlay();
 }
 

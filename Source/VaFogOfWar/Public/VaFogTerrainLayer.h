@@ -45,6 +45,7 @@ protected:
 	uint8* InitialTerrainBuffer;
 
 protected:
+	virtual void OnAddFogAgent(UVaFogAgentComponent* InFogAgent) override;
 	virtual void OnRemoveFogAgent(UVaFogAgentComponent* InFogAgent) override;
 	virtual void OnRemoveFogBlockingVolume(AVaFogBlockingVolume* InFogBlockingVolume) override;
 };
