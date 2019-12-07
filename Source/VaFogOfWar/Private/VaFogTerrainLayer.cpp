@@ -36,6 +36,7 @@ AVaFogTerrainLayer::AVaFogTerrainLayer(const FObjectInitializer& ObjectInitializ
 	ZeroBufferValue = static_cast<uint8>(EVaFogHeightLevel::HL_1);
 
 	InitialTerrainBuffer = nullptr;
+	bUpdateRequired = false;
 }
 
 void AVaFogTerrainLayer::InitInternalBuffers()
@@ -73,10 +74,12 @@ void AVaFogTerrainLayer::BeginPlay()
 
 void AVaFogTerrainLayer::UpdateLayer(bool bForceFullUpdate)
 {
-	if (bForceFullUpdate)
+	if (bForceFullUpdate || bUpdateRequired)
 	{
 		UpdateBlockingVolumes();
 		UpdateAgents();
+
+		bUpdateRequired = false;
 	}
 }
 
@@ -187,6 +190,8 @@ void AVaFogTerrainLayer::OnAddFogAgent(UVaFogAgentComponent* InFogAgent)
 void AVaFogTerrainLayer::OnRemoveFogAgent(UVaFogAgentComponent* InFogAgent)
 {
 	UpdateObstacle(InFogAgent, false);
+
+	bUpdateRequired = true;
 }
 
 void AVaFogTerrainLayer::OnRemoveFogBlockingVolume(AVaFogBlockingVolume* InFogBlockingVolume)

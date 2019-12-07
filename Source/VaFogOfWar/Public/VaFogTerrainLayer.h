@@ -44,6 +44,9 @@ protected:
 	/** Initial terrain buffer for navigation */
 	uint8* InitialTerrainBuffer;
 
+	/** Is full update required on next tick */
+	bool bUpdateRequired;
+
 protected:
 	virtual void OnAddFogAgent(UVaFogAgentComponent* InFogAgent) override;
 	virtual void OnRemoveFogAgent(UVaFogAgentComponent* InFogAgent) override;
