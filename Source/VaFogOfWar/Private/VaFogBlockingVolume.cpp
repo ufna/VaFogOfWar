@@ -89,15 +89,15 @@ void AVaFogBlockingVolume::PostEditChangeProperty(FPropertyChangedEvent& Propert
 {
 	UpdateTargetLayer();
 
+	// @TODO Force volume brush to be square or use custom BrushBuilder
+
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+
 	// Force update layer state for realtime preview
 	if (Layer)
 	{
 		Layer->UpdateLayer(true);
 	}
-
-	// @TODO Force volume brush to be square or use custom BrushBuilder
-
-	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif
 

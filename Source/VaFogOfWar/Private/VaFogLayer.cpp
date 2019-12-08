@@ -438,14 +438,14 @@ void AVaFogLayer::UpdateBlockingVolumes()
 	FVector PointLocation = FVector::ZeroVector;
 	FIntPoint AgentLocation(0, 0);
 
-	for (auto BlockingVolume : FogBlockingVolumes)
+	for (auto BlockingVolumePtr : FogBlockingVolumes)
 	{
-#if WITH_EDITORONLY_DATA
+		auto BlockingVolume = BlockingVolumePtr.IsValid() ? BlockingVolumePtr.Get() : nullptr;
 		if (!BlockingVolume)
 		{
 			UE_LOG(LogVaFog, Error, TEXT("[%s] BlockingVolume is nullptr: cleanup layer volumes list!"), *VA_FUNC_LINE);
+			continue;
 		}
-#endif
 
 		FVector VolumeOrigin = FVector::ZeroVector;
 		FVector VolumeExtent = FVector::ZeroVector;
@@ -474,12 +474,12 @@ void AVaFogLayer::UpdateBlockingVolumes()
 
 					if (BlockingVolume->bDebugVolume)
 					{
-						DrawDebugBox(GetWorld(), PointLocation, BoundsVolume->GetCellExtent() * 0.95f, BoundsVolume->GetTransform().GetRotation(), FColor::Red, true);
+						DrawDebugBox(GetWorld(), PointLocation, BoundsVolume->GetCellExtent() * 0.95f, BoundsVolume->GetTransform().GetRotation(), UVaFogLibrary::GetDebugColorForHeightLevel(BlockingVolume->HeightLevel), true);
 					}
 				}
 				else if (BlockingVolume->bDebugVolume)
 				{
-					DrawDebugBox(GetWorld(), PointLocation, BoundsVolume->GetCellExtent() * 0.95f, BoundsVolume->GetTransform().GetRotation(), FColor::Yellow, true);
+					DrawDebugBox(GetWorld(), PointLocation, BoundsVolume->GetCellExtent() * 0.8f, BoundsVolume->GetTransform().GetRotation(), FColor::White, true);
 				}
 			}
 		}

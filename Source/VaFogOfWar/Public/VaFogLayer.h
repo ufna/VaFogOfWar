@@ -172,8 +172,7 @@ protected:
 	TArray<UVaFogAgentComponent*> FogAgents;
 
 	/** Registered fog blocking volumes for layer */
-	UPROPERTY(VisibleAnywhere)
-	TArray<AVaFogBlockingVolume*> FogBlockingVolumes;
+	TArray<TWeakObjectPtr<AVaFogBlockingVolume>> FogBlockingVolumes;
 
 	/** Radius strategy instances */
 	TMap<EVaFogRadiusStrategy, FVaFogRadiusStrategyRef> RadiusStrategies;
