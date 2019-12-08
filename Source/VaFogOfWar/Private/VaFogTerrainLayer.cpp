@@ -72,6 +72,24 @@ void AVaFogTerrainLayer::BeginPlay()
 	Super::BeginPlay();
 }
 
+#if WITH_EDITOR
+void AVaFogTerrainLayer::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	static const FName NAME_InitialTerrainTexture = FName(TEXT("InitialTerrainTexture"));
+
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+	if (PropertyChangedEvent.Property)
+	{
+		if (PropertyChangedEvent.Property->GetFName() == NAME_InitialTerrainTexture)
+		{
+			CleanupInternalBuffers();
+			InitInternalBuffers();
+		}
+	}
+}
+#endif
+
 void AVaFogTerrainLayer::UpdateLayer(bool bForceFullUpdate)
 {
 	if (bForceFullUpdate || bUpdateRequired)

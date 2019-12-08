@@ -22,6 +22,10 @@ public:
 
 	virtual void BeginPlay() override;
 
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+
 	virtual void UpdateLayer(bool bForceFullUpdate) override;
 
 	/** Get initial terrain state at location */
