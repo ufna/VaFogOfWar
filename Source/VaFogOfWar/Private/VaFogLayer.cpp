@@ -762,6 +762,18 @@ void AVaFogLayer::RemoveFogBlockingVolume(AVaFogBlockingVolume* InFogBlockingVol
 	}
 }
 
+bool AVaFogLayer::IsLocationRevealed(const FVector& InLocation) const
+{
+	if (!BoundsVolume)
+	{
+		UE_LOG(LogVaFog, Warning, TEXT("[%s] Fog bounds volume is not registeret, location is not revealed by default"), *VA_FUNC_LINE);
+		return false;
+	}
+
+	FIntPoint PointLocation = BoundsVolume->TransformWorldToLayer(InLocation);
+	return SourceBuffer[PointLocation.Y * SourceW + PointLocation.X] == 0xFF;
+}
+
 void AVaFogLayer::UpdateTextureFromBuffer(UTexture2D* DestinationTexture, uint8* SrcBuffer, int32 SrcBufferLength, FUpdateTextureRegion2D& UpdateTextureRegion)
 {
 	struct FTextureData

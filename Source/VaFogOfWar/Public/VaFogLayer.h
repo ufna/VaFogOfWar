@@ -205,6 +205,14 @@ protected:
 	FUpdateTextureRegion2D UpscaleUpdateRegion;
 
 	//////////////////////////////////////////////////////////////////////////
+	// Gameplay
+
+public:
+	/** Is location is revealed on layer  */
+	UFUNCTION(BlueprintCallable, Category = "VaFog|FogLayer")
+	bool IsLocationRevealed(const FVector& InLocation) const;
+
+	//////////////////////////////////////////////////////////////////////////
 	// Debug
 
 protected:
