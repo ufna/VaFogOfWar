@@ -45,6 +45,7 @@ AVaFogBlockingVolume::AVaFogBlockingVolume(const FObjectInitializer& ObjectIniti
 	bColored = true;
 
 	HeightLevel = EVaFogHeightLevel::HL_3;
+	Priority = 0;
 }
 
 void AVaFogBlockingVolume::PostLoad()

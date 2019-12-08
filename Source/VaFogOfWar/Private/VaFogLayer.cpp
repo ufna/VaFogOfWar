@@ -741,6 +741,12 @@ void AVaFogLayer::AddFogBlockingVolume(AVaFogBlockingVolume* InFogBlockingVolume
 {
 	FogBlockingVolumes.AddUnique(InFogBlockingVolume);
 
+	FogBlockingVolumes.Sort([](const TWeakObjectPtr<AVaFogBlockingVolume>& A, const TWeakObjectPtr<AVaFogBlockingVolume>& B) {
+		int32 PriorityA = A.IsValid() ? A.Get()->Priority : -1;
+		int32 PriorityB = B.IsValid() ? B.Get()->Priority : -1;
+		return PriorityA <= PriorityB;
+	});
+
 	OnAddFogBlockingVolume(InFogBlockingVolume);
 }
 

@@ -42,6 +42,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	EVaFogHeightLevel HeightLevel;
 
+	/** Volumes will affect terrain level being sorted by Priority */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere)
+	int32 Priority;
+
 protected:
 	/** Process volume bounds and apply its influence into terrain map */
 	void UpdateTargetLayer();
