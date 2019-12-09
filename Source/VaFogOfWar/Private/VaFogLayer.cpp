@@ -456,6 +456,12 @@ void AVaFogLayer::UpdateBlockingVolumes()
 		FVector OriginShift = BoundsVolume->SnapWorldToGrid(VolumeOrigin) - VolumeOrigin;
 		OriginShift.Z = 0;
 
+		if (BlockingVolume->bDebugVolume)
+		{
+			DrawDebugSphere(GetWorld(), VolumeOrigin, 100.f, 30, FColor::Red, true);
+			DrawDebugSphere(GetWorld(), BoundsVolume->SnapWorldToGrid(VolumeOrigin), 100.f, 30, FColor::Green, true);
+		}
+
 		// It's not perfect match but should work
 		int32 LineXSize = FMath::CeilToInt(VolumeExtent.X * 2.f / BoundsCellSizeX);
 		int32 LineYSize = FMath::CeilToInt(VolumeExtent.Y * 2.f / BoundsCellSizeY);

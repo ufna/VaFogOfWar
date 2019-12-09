@@ -151,6 +151,7 @@ void AVaFogBoundsVolume::DrawDebugGrid()
 {
 	FIntPoint LayerPoint;
 	FVector LayerPosition = FVector::ZeroVector;
+	int32 LocationZ = GetActorLocation().Z;
 
 	for (int32 i = 0; i < CachedFogLayerResolution; i++)
 	{
@@ -161,6 +162,8 @@ void AVaFogBoundsVolume::DrawDebugGrid()
 			LayerPosition.Z = 0;
 
 			LayerPosition = VolumeTransform.TransformPosition(LayerPosition);
+			LayerPosition += GetCellExtent();
+			LayerPosition.Z = LocationZ;
 
 			DrawDebugBox(GetWorld(), LayerPosition, GetCellExtent() * 0.95f, GetTransform().GetRotation(), FColor::Green, false, DebugTime);
 		}
