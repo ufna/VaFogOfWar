@@ -594,13 +594,6 @@ void AVaFogLayer::DrawFieldOfView(const FFogDrawContext& DrawContext, int32 Y, f
 				break;
 			}
 
-			// @TODO Make radius strategies configurable https://github.com/ufna/VaFogOfWar/issues/58
-			// Check if it's within the lightable area and light if needed
-			if (RadiusStrategies[DrawContext.RadiusStrategy]->IsInRadius(DrawContext.CenterX, DrawContext.CenterY, DrawContext.Radius, CurrentX, CurrentY))
-			{
-				Reveal(DrawContext, CurrentX, CurrentY);
-			}
-
 			// Check if previous cell was a blocking one
 			if (bBlocked)
 			{
@@ -623,6 +616,15 @@ void AVaFogLayer::DrawFieldOfView(const FFogDrawContext& DrawContext, int32 Y, f
 					bBlocked = true;
 					DrawFieldOfView(DrawContext, Distance + 1, Start, LeftSlope, Transform);
 					NewStart = RightSlope;
+				}
+				else
+				{
+					// @TODO Make radius strategies configurable https://github.com/ufna/VaFogOfWar/issues/58
+					// Check if it's within the lightable area and light if needed
+					if (RadiusStrategies[DrawContext.RadiusStrategy]->IsInRadius(DrawContext.CenterX, DrawContext.CenterY, DrawContext.Radius, CurrentX, CurrentY))
+					{
+						Reveal(DrawContext, CurrentX, CurrentY);
+					}
 				}
 			}
 		}
