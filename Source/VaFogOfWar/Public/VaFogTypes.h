@@ -28,6 +28,7 @@ enum class EVaFogRadiusStrategy : uint8
 /** 
  * There are six different height levels that have gameplay relevance. One height level can be connected to another by a stair (passable) or a cliff (obstructed).
  */
+// clang-format off
 UENUM(BlueprintType)
 enum class EVaFogHeightLevel : uint8
 {
@@ -41,3 +42,4 @@ enum class EVaFogHeightLevel : uint8
 	HL_7 = 0x40 UMETA(DisplayName = "Valley"),	   // Valley
 	HL_8 = 0x80 UMETA(Hidden)
 };
+// clang-format on
