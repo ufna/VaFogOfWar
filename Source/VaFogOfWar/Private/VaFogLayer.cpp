@@ -453,25 +453,37 @@ void AVaFogLayer::UpdateBlockingVolumes()
 		DrawContext.RevealLevel = static_cast<uint8>(BlockingVolume->HeightLevel);
 
 		// Snap to bounds grid now
-		FVector OriginShift = BoundsVolume->SnapWorldToGrid(VolumeOrigin) - VolumeOrigin;
-		OriginShift.Z = 0;
+		FVector OriginSnapped = BoundsVolume->SnapWorldToGrid(VolumeOrigin);
 
-		if (BlockingVolume->bDebugVolume)
-		{
-			DrawDebugSphere(GetWorld(), VolumeOrigin, 100.f, 30, FColor::Red, true);
-			DrawDebugSphere(GetWorld(), BoundsVolume->SnapWorldToGrid(VolumeOrigin), 100.f, 30, FColor::Green, true);
-		}
+		//if (BlockingVolume->bDebugVolume)
+		//{
+		//	DrawDebugSphere(GetWorld(), VolumeOrigin, 100.f, 30, FColor::Red, true);
+		//	DrawDebugSphere(GetWorld(), BoundsVolume->SnapWorldToGrid(VolumeOrigin), 100.f, 30, FColor::Green, true);
+		//}
 
 		// It's not perfect match but should work
-		int32 LineXSize = FMath::CeilToInt(VolumeExtent.X * 2.f / BoundsCellSizeX);
-		int32 LineYSize = FMath::CeilToInt(VolumeExtent.Y * 2.f / BoundsCellSizeY);
+		int32 LineXSize = FMath::CeilToInt((VolumeExtent.X * 2.f) / BoundsCellSizeX);
+		int32 LineYSize = FMath::CeilToInt((VolumeExtent.Y * 2.f) / BoundsCellSizeY);
+
+		// Minor asjust
+		if ((OriginSnapped.X - VolumeOrigin.X) / BoundsVolume->GetCellExtent().X >= 1.f)
+		{
+			LineXSize += 1;
+		}
+
+		if ((OriginSnapped.Y - VolumeOrigin.Y) / BoundsVolume->GetCellExtent().Y >= 1.f)
+		{
+			LineYSize += 1;
+		}
+
+		int32 LineXSizeHalf = FMath::FloorToInt(LineXSize / 2.f);
+		int32 LineYSizeHalf = FMath::FloorToInt(LineYSize / 2.f);
 
 		for (int32 i = 0; i < LineXSize; i++)
 		{
 			for (int32 j = 0; j < LineYSize; j++)
 			{
-				PointLocation = VolumeOrigin - VolumeExtent + FVector(i * BoundsCellSizeX, j * BoundsCellSizeY, 0.f) + OriginShift;
-				PointLocation.Z = VolumeOrigin.Z;
+				PointLocation = OriginSnapped + FVector((i - LineXSizeHalf - 1) * BoundsCellSizeX, (j - LineYSizeHalf) * BoundsCellSizeY, 0.f) + BoundsVolume->GetCellExtent();
 
 				if (BlockingVolume->EncompassesPoint(PointLocation))
 				{

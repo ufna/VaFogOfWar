@@ -172,6 +172,6 @@ void AVaFogBoundsVolume::DrawDebugGrid()
 
 FVector AVaFogBoundsVolume::SnapWorldToGrid(const FVector& InLocation) const
 {
-	FIntPoint GridPoint = TransformWorldToLayer(InLocation) + FIntPoint(-LayerToTextureShift + 1, 0);
+	FIntPoint GridPoint = TransformWorldToLayer(InLocation) + FIntPoint(-LayerToTextureShift, 0);
 	return VolumeTransform.TransformPosition(FVector(LayerToTextureShift - GridPoint.Y, GridPoint.X, 0.f));
 }
