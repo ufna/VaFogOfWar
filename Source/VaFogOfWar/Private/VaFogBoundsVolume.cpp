@@ -33,10 +33,10 @@ AVaFogBoundsVolume::AVaFogBoundsVolume(const FObjectInitializer& ObjectInitializ
 		static FConstructorStatics ConstructorStatics;
 
 		SpriteComponent->Sprite = ConstructorStatics.TextRenderTexture.Get();
-		SpriteComponent->RelativeScale3D = FVector(1.f, 1.f, 1.f);
+		SpriteComponent->SetRelativeScale3D(FVector(1.f, 1.f, 1.f));
 		SpriteComponent->SetupAttachment(GetBrushComponent());
 		SpriteComponent->bIsScreenSizeScaled = true;
-		SpriteComponent->bAbsoluteScale = true;
+		SpriteComponent->SetUsingAbsoluteScale(true);
 		SpriteComponent->bReceivesDecals = false;
 	}
 #endif

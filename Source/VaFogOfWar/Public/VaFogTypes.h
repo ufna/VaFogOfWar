@@ -31,12 +31,13 @@ enum class EVaFogRadiusStrategy : uint8
 UENUM(BlueprintType)
 enum class EVaFogHeightLevel : uint8
 {
+	HL_INVALID = 0 UMETA(Hidden),
 	HL_1 = 0x01 UMETA(Hidden),
-	HL_2 = 0x02 UMETA(DisplayName = "River"),	  // River
+	HL_2 = 0x02 UMETA(DisplayName = "River"),	   // River
 	HL_3 = 0x04 UMETA(DisplayName = "Lowground"),  // Lowground
 	HL_4 = 0x08 UMETA(DisplayName = "Highground"), // Highground
 	HL_5 = 0x10 UMETA(DisplayName = "Elevated"),   // Elevated
-	HL_6 = 0x20 UMETA(DisplayName = "Cliffs"),	 // Cliffs
-	HL_7 = 0x40 UMETA(DisplayName = "Valley"),	 // Valley
+	HL_6 = 0x20 UMETA(DisplayName = "Cliffs"),	   // Cliffs
+	HL_7 = 0x40 UMETA(DisplayName = "Valley"),	   // Valley
 	HL_8 = 0x80 UMETA(Hidden)
 };
