@@ -8,9 +8,9 @@ A clear and simple solution of Fog of War for Unreal Engine 4.
 
 ![SCREENSHOT](SCREENSHOT.jpg)
 
-**VaFogOfWar** implements fast and optimized fog of war solution for topdown games like Dota, StarCraft or League of Legends.
+**VaFogOfWar** implements fast and optimized fog of war solution for topdown games like Dota, StarCraft or League of Legends. It fast enough even to work on mid-end mobile devices, so it works like a charm on desktop.
 
-It fast enough even to work on mid-end mobile devices, so it works like a charm on desktop.
+Check [wiki](http://bit.ly/VaFogOfWar-Docs) for usage examples and development notes.
 
 ### Main features
 
@@ -28,5 +28,3 @@ There are two versions of plugin:
 1. Free Community version (which is already available) on Github. Just core C++ code to handle the fog, but no demo content and usage examples.
 
 2. Paid Marketplace version: same as community version + demo content and extended usage example with preconfigured post process.
-
-Check [wiki](http://bit.ly/VaFogOfWar-Docs) for usage examples and development notes.
