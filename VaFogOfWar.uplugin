@@ -25,7 +25,9 @@
 				"Mac",
 				"IOS",
 				"Android",
-				"Linux"
+				"Linux",
+				"PS4",
+				"XboxOne"
 			]
 		}
 	]
