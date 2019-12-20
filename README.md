@@ -21,10 +21,16 @@ Check [wiki](http://bit.ly/VaFogOfWar-Docs) for usage examples and development n
 - Freeform fog blocking volumes as tool for terrain level painting
 - Initial terrain levels can be set with heightmap
 
-### Plugin versions
+### Release notes
 
-There are two versions of plugin:
+Plugin is released for free without any limitations, you can use it and modify as you want. Feel free to post your comments and feedback.
 
-1. Free Community version (which is already available) on Github. Just core C++ code to handle the fog, but no demo content and usage examples.
+Demo content is not provided, but it's planned to be released at the Unreal Marketplace as separate paid package.
 
-2. Paid Marketplace version: same as community version + demo content and extended usage example with preconfigured post process.
+
+# Legal info
+
+Unreal® is a trademark or registered trademark of Epic Games, Inc. in the United States of America and elsewhere.
+
+Unreal® Engine, Copyright 1998 – 2019, Epic Games, Inc. All rights reserved.
+
