@@ -11,7 +11,7 @@
 	"DocsURL": "",
 	"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/78c410e5ef424e1fb0023bb842550adc",
 	"SupportURL": "",
-	"CanContainContent": true,
+	"CanContainContent": false,
 	"IsBetaVersion": false,
 	"Installed": false,
 	"Modules": [
@@ -25,7 +25,9 @@
 				"Mac",
 				"IOS",
 				"Android",
-				"Linux"
+				"Linux",
+				"PS4",
+				"XboxOne"
 			]
 		}
 	]
