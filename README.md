@@ -25,7 +25,7 @@ Check [wiki](http://bit.ly/VaFogOfWar-Docs) for usage examples and development n
 
 Plugin is released for free without any limitations, you can use it and modify as you want. Feel free to post your comments and feedback.
 
-Demo content is not provided, but it's planned to be released at the Unreal Marketplace as separate paid package.
+Demo content is not provided, but it's released as separate paid demo project here: https://gum.co/TFflr . It's also planned to be released at the Unreal Marketplace a bit later.
 
 
 ## Legal info
