@@ -28,7 +28,7 @@ Plugin is released for free without any limitations, you can use it and modify a
 Demo content is not provided, but it's planned to be released at the Unreal Marketplace as separate paid package.
 
 
-# Legal info
+## Legal info
 
 Unreal® is a trademark or registered trademark of Epic Games, Inc. in the United States of America and elsewhere.
 
