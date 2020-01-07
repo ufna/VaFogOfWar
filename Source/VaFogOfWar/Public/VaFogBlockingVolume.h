@@ -35,15 +35,15 @@ private:
 
 public:
 	/** Target layer to paint on */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere)
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "VaFog Blocking Volume")
 	AVaFogLayer* Layer;
 
 	/** Height level where agent is standing */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VaFog Blocking Volume")
 	EVaFogHeightLevel HeightLevel;
 
 	/** Volumes will affect terrain level being sorted by Priority */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere)
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "VaFog Blocking Volume")
 	int32 Priority;
 
 protected:

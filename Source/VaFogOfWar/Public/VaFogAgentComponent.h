@@ -48,23 +48,23 @@ public:
 
 public:
 	/** Is agent is enabled by default? */
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VaFog Agent")
 	bool bAgentEnabled;
 
 	/** Fog layer we're scouting by the agent */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VaFog Agent")
 	TSet<EVaFogLayerChannel> TargetChannels;
 
 	/** Radius strategy used for fog interaction */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VaFog Agent")
 	EVaFogRadiusStrategy RadiusStrategy;
 
 	/** Agent vision radius in cm (set 0 to use single cell vision) */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VaFog Agent")
 	int32 VisionRadius;
 
 	/** Height level where agent is standing */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VaFog Agent")
 	EVaFogHeightLevel HeightLevel;
 
 private:

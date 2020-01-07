@@ -168,7 +168,7 @@ protected:
 
 protected:
 	/** Registered fog agents for layer */
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = "Fog of War")
 	TArray<UVaFogAgentComponent*> FogAgents;
 
 	/** Registered fog blocking volumes for layer */
