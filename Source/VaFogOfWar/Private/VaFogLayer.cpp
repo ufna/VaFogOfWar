@@ -169,7 +169,7 @@ AVaFogLayer::AVaFogLayer(const FObjectInitializer& ObjectInitializer)
 		SpriteComponent->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
 		SpriteComponent->SetupAttachment(RootComponent);
 		SpriteComponent->bIsScreenSizeScaled = true;
-		SpriteComponent->SetUsingAbsoluteScale(true);
+		SpriteComponent->bAbsoluteScale = true;
 		SpriteComponent->bReceivesDecals = false;
 	}
 #endif

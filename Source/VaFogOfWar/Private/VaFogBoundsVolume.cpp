@@ -36,7 +36,7 @@ AVaFogBoundsVolume::AVaFogBoundsVolume(const FObjectInitializer& ObjectInitializ
 		SpriteComponent->SetRelativeScale3D(FVector(1.f, 1.f, 1.f));
 		SpriteComponent->SetupAttachment(GetBrushComponent());
 		SpriteComponent->bIsScreenSizeScaled = true;
-		SpriteComponent->SetUsingAbsoluteScale(true);
+		SpriteComponent->bAbsoluteScale = true;
 		SpriteComponent->bReceivesDecals = false;
 	}
 #endif
