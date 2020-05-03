@@ -9,7 +9,7 @@
 
 #include "VaFogBlockingVolume.generated.h"
 
-class AVaFogLayer;
+class AVaFogTerrainLayer;
 
 UCLASS()
 class VAFOGOFWAR_API AVaFogBlockingVolume : public AVolume
@@ -34,9 +34,9 @@ private:
 #endif
 
 public:
-	/** Target layer to paint on */
+	/** Target terrain layer to paint on */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "VaFog Blocking Volume")
-	AVaFogLayer* Layer;
+	AVaFogTerrainLayer* TerrainLayer;
 
 	/** Height level where agent is standing */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VaFog Blocking Volume")

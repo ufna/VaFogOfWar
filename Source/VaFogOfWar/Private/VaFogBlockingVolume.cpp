@@ -3,7 +3,7 @@
 #include "VaFogBlockingVolume.h"
 
 #include "VaFogDefines.h"
-#include "VaFogLayer.h"
+#include "VaFogTerrainLayer.h"
 
 #include "Components/BillboardComponent.h"
 #include "Components/BrushComponent.h"
@@ -68,18 +68,18 @@ void AVaFogBlockingVolume::OnConstruction(const FTransform& Transform)
 
 #if WITH_EDITORONLY_DATA
 	// Force update layer state for realtime preview
-	if (Layer)
+	if (TerrainLayer)
 	{
-		Layer->UpdateLayer(true);
+		TerrainLayer->UpdateLayer(true);
 	}
 #endif
 }
 
 void AVaFogBlockingVolume::Destroyed()
 {
-	if (Layer)
+	if (TerrainLayer)
 	{
-		Layer->RemoveFogBlockingVolume(this);
+		TerrainLayer->RemoveFogBlockingVolume(this);
 	}
 
 	Super::Destroyed();
@@ -95,9 +95,9 @@ void AVaFogBlockingVolume::PostEditChangeProperty(FPropertyChangedEvent& Propert
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
 	// Force update layer state for realtime preview
-	if (Layer)
+	if (TerrainLayer)
 	{
-		Layer->UpdateLayer(true);
+		TerrainLayer->UpdateLayer(true);
 	}
 }
 #endif
@@ -106,8 +106,8 @@ void AVaFogBlockingVolume::UpdateTargetLayer()
 {
 	UE_LOG(LogVaFog, Log, TEXT("[%s] Volume [%s] Check layer we should update and apply self into"), *VA_FUNC_LINE, *GetName());
 
-	if (Layer)
+	if (TerrainLayer)
 	{
-		Layer->AddFogBlockingVolume(this);
+		TerrainLayer->AddFogBlockingVolume(this);
 	}
 }
