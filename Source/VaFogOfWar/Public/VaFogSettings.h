@@ -20,6 +20,6 @@ private:
 
 public:
 	/** Must be power of two */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VA Fog of War Settings")
+	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "VA Fog of War Settings")
 	int32 FogLayerResolution;
 };
