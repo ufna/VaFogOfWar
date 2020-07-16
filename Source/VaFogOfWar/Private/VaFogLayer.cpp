@@ -794,6 +794,16 @@ bool AVaFogLayer::IsLocationRevealed(const FVector& InLocation) const
 	return SourceBuffer[PointLocation.Y * SourceW + PointLocation.X] == 0xFF;
 }
 
+void AVaFogLayer::CoverAll()
+{
+	FMemory::Memset(SourceBuffer, ZeroBufferValue, SourceBufferLength);
+}
+
+void AVaFogLayer::RevealAll()
+{
+	FMemory::Memset(SourceBuffer, 0xFF, SourceBufferLength);
+}
+
 void AVaFogLayer::UpdateTextureFromBuffer(UTexture2D* DestinationTexture, uint8* SrcBuffer, int32 SrcBufferLength, FUpdateTextureRegion2D& UpdateTextureRegion)
 {
 	struct FTextureData

@@ -208,9 +208,17 @@ protected:
 	// Gameplay
 
 public:
-	/** Is location is revealed on layer  */
+	/** Is location is revealed on layer */
 	UFUNCTION(BlueprintCallable, Category = "VaFog|FogLayer")
 	bool IsLocationRevealed(const FVector& InLocation) const;
+
+	/** Cover all the layer with fog */
+	UFUNCTION(BlueprintCallable, Category = "VaFog|FogLayer")
+	void CoverAll();
+
+	/** Reveal all fog at layer (clear it) */
+	UFUNCTION(BlueprintCallable, Category = "VaFog|FogLayer")
+	void RevealAll();
 
 	//////////////////////////////////////////////////////////////////////////
 	// Debug
