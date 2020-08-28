@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include "VaFogTypes.generated.h"
-
 UENUM(BlueprintType)
 enum class EVaFogLayerChannel : uint8
 {
