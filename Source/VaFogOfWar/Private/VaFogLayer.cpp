@@ -17,6 +17,7 @@
 #include "Engine/Texture2D.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Materials/Material.h"
+#include "Rendering/Texture2DResource.h"
 #include "UObject/ConstructorHelpers.h"
 
 #include <functional>

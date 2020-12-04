@@ -32,5 +32,5 @@ Demo content is not provided, but it's released as separate paid demo project he
 
 Unreal® is a trademark or registered trademark of Epic Games, Inc. in the United States of America and elsewhere.
 
-Unreal® Engine, Copyright 1998 – 2019, Epic Games, Inc. All rights reserved.
+Unreal® Engine, Copyright 1998 – 2020, Epic Games, Inc. All rights reserved.
 
