@@ -343,6 +343,12 @@ void AVaFogLayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	// Cleanup buffer for scouting
+	if (LayerChannel == EVaFogLayerChannel::Scouting)
+	{
+		FMemory::Memset(SourceBuffer, ZeroBufferValue, SourceBufferLength);
+	}
+
 	UpdateLayer();
 	UpdateBuffers();
 }
@@ -364,12 +370,6 @@ void AVaFogLayer::UpdateBuffers()
 	{
 		UpdateUpscaleBuffer();
 		UpdateTextureFromBuffer(UpscaleTexture, UpscaleBuffer, UpscaleBufferLength, UpscaleUpdateRegion);
-	}
-
-	// Cleanup buffer for scouting
-	if (LayerChannel == EVaFogLayerChannel::Scouting)
-	{
-		FMemory::Memset(SourceBuffer, ZeroBufferValue, SourceBufferLength);
 	}
 }
 
@@ -792,6 +792,9 @@ bool AVaFogLayer::IsLocationRevealed(const FVector& InLocation) const
 	}
 
 	FIntPoint PointLocation = BoundsVolume->TransformWorldToLayer(InLocation);
+
+	UE_LOG(LogVaFog, Warning, TEXT("[%s] %d"), *VA_FUNC_LINE, SourceBuffer[PointLocation.Y * SourceW + PointLocation.X]);
+
 	return SourceBuffer[PointLocation.Y * SourceW + PointLocation.X] == 0xFF;
 }
 
