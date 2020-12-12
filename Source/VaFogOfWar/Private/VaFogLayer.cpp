@@ -793,8 +793,6 @@ bool AVaFogLayer::IsLocationRevealed(const FVector& InLocation) const
 
 	FIntPoint PointLocation = BoundsVolume->TransformWorldToLayer(InLocation);
 
-	UE_LOG(LogVaFog, Warning, TEXT("[%s] %d"), *VA_FUNC_LINE, SourceBuffer[PointLocation.Y * SourceW + PointLocation.X]);
-
 	return SourceBuffer[PointLocation.Y * SourceW + PointLocation.X] == 0xFF;
 }
 
