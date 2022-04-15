@@ -2,7 +2,7 @@
 	"FileVersion": 3,
 	"Version": 1,
 	"VersionName": "1.0",
-	"EngineVersion" : "4.27.0",
+	"EngineVersion" : "5.0",
 	"FriendlyName": "VaFogOfWar",
 	"Description": "VaFogOfWar",
 	"Category": "Rendering",
@@ -20,14 +20,11 @@
 			"Type": "Runtime",
 			"LoadingPhase": "PreDefault",
 			"WhitelistPlatforms": [
-				"Win32",
 				"Win64",
 				"Mac",
 				"IOS",
 				"Android",
-				"Linux",
-				"PS4",
-				"XboxOne"
+				"Linux"
 			]
 		}
 	]
