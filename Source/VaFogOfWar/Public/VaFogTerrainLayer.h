@@ -6,7 +6,7 @@
 
 #include "VaFogTerrainLayer.generated.h"
 
-/** 
+/**
  * Pre-configured layer for handling terrain and obstacles
  */
 UCLASS()

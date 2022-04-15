@@ -4,9 +4,9 @@
 
 #include "CoreMinimal.h"
 
-/** 
- * Abstract strategy pattern class that allows alternate radius calculations to be used. 
- * This allows for circular, square, diamond, or any custom formula for radius. 
+/**
+ * Abstract strategy pattern class that allows alternate radius calculations to be used.
+ * This allows for circular, square, diamond, or any custom formula for radius.
  */
 class FVaFogRadiusStrategy
 {
@@ -29,7 +29,7 @@ public:
 	virtual bool IsInRadius(int32 CenterX, int32 CenterY, int32 Radius, int32 X, int32 Y) override;
 };
 
-/** 
+/**
  * Radius treated as diameter here
  */
 class FVaFogRadiusStrategy_SquareStepped : public FVaFogRadiusStrategy

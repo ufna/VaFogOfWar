@@ -73,9 +73,8 @@ void UVaFogController::OnFogAgentRemoved(UVaFogAgentComponent* InFogAgent)
 
 AVaFogLayer* UVaFogController::GetFogLayer(EVaFogLayerChannel LayerChannel) const
 {
-	auto FogLayerPtr = FogLayers.FindByPredicate([LayerChannel](const TWeakObjectPtr<AVaFogLayer> InLayer) {
-		return (InLayer.IsValid()) ? (InLayer.Get()->LayerChannel == LayerChannel) : false;
-	});
+	auto FogLayerPtr = FogLayers.FindByPredicate([LayerChannel](const TWeakObjectPtr<AVaFogLayer> InLayer)
+		{ return (InLayer.IsValid()) ? (InLayer.Get()->LayerChannel == LayerChannel) : false; });
 
 	return (FogLayerPtr && (*FogLayerPtr).IsValid()) ? ((*FogLayerPtr).Get()) : nullptr;
 }

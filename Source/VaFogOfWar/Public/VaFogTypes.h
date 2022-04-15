@@ -25,7 +25,7 @@ enum class EVaFogRadiusStrategy : uint8
 	Max UMETA(Hidden)
 };
 
-/** 
+/**
  * There are six different height levels that have gameplay relevance. One height level can be connected to another by a stair (passable) or a cliff (obstructed).
  */
 // clang-format off

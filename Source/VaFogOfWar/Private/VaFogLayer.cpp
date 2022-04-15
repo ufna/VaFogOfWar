@@ -386,7 +386,7 @@ void AVaFogLayer::UpdateAgents()
 	for (auto FogAgent : FogAgents)
 	{
 		FIntPoint AgentLocation = BoundsVolume->TransformWorldToLayer(FogAgent->GetComponentTransform().GetLocation());
-		//UE_LOG(LogVaFog, Warning, TEXT("[%s] Agent [%s] location: %s"), *VA_FUNC_LINE, *FogAgent->GetName(), *AgentLocation.ToString());
+		// UE_LOG(LogVaFog, Warning, TEXT("[%s] Agent [%s] location: %s"), *VA_FUNC_LINE, *FogAgent->GetName(), *AgentLocation.ToString());
 
 		if (bDebugAgents)
 		{
@@ -456,11 +456,11 @@ void AVaFogLayer::UpdateBlockingVolumes()
 		// Snap to bounds grid now
 		FVector OriginSnapped = BoundsVolume->SnapWorldToGrid(VolumeOrigin);
 
-		//if (BlockingVolume->bDebugVolume)
+		// if (BlockingVolume->bDebugVolume)
 		//{
 		//	DrawDebugSphere(GetWorld(), VolumeOrigin, 100.f, 30, FColor::Red, true);
 		//	DrawDebugSphere(GetWorld(), BoundsVolume->SnapWorldToGrid(VolumeOrigin), 100.f, 30, FColor::Green, true);
-		//}
+		// }
 
 		// It's not perfect match but should work
 		int32 LineXSize = FMath::CeilToInt((VolumeExtent.X * 2.f) / BoundsCellSizeX);
@@ -724,7 +724,7 @@ void AVaFogLayer::DrawHorizontalLine(uint8* TargetBuffer, int32 x0, int32 y0, in
 
 FFogTexel2x2 AVaFogLayer::FetchTexelFromSource(int32 W, int32 H)
 {
-	//SCOPE_CYCLE_COUNTER(STAT_FetchTexelFromSource);
+	// SCOPE_CYCLE_COUNTER(STAT_FetchTexelFromSource);
 
 	// Clamp neighbor coords if necessary
 	int32 NeighborW = FMath::Min(W + 1, SourceW - 1);
@@ -762,11 +762,11 @@ void AVaFogLayer::AddFogBlockingVolume(AVaFogBlockingVolume* InFogBlockingVolume
 {
 	FogBlockingVolumes.AddUnique(InFogBlockingVolume);
 
-	FogBlockingVolumes.Sort([](const TWeakObjectPtr<AVaFogBlockingVolume>& A, const TWeakObjectPtr<AVaFogBlockingVolume>& B) {
+	FogBlockingVolumes.Sort([](const TWeakObjectPtr<AVaFogBlockingVolume>& A, const TWeakObjectPtr<AVaFogBlockingVolume>& B)
+		{
 		int32 PriorityA = A.IsValid() ? A.Get()->Priority : -1;
 		int32 PriorityB = B.IsValid() ? B.Get()->Priority : -1;
-		return PriorityA <= PriorityB;
-	});
+		return PriorityA <= PriorityB; });
 
 	OnAddFogBlockingVolume(InFogBlockingVolume);
 }
@@ -828,7 +828,8 @@ void AVaFogLayer::UpdateTextureFromBuffer(UTexture2D* DestinationTexture, uint8*
 
 	ENQUEUE_RENDER_COMMAND(UpdateTexture)
 	(
-		[TextureData](FRHICommandListImmediate& RHICmdList) {
+		[TextureData](FRHICommandListImmediate& RHICmdList)
+		{
 			int32 CurrentFirstMip = TextureData->Texture2DResource->GetCurrentFirstMip();
 			if (CurrentFirstMip <= 0)
 			{

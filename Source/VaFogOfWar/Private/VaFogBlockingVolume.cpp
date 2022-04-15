@@ -38,7 +38,7 @@ AVaFogBlockingVolume::AVaFogBlockingVolume(const FObjectInitializer& ObjectIniti
 	}
 #endif
 
-	//GetBrushComponent()->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
+	// GetBrushComponent()->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
 	GetBrushComponent()->Mobility = EComponentMobility::Static;
 
 	BrushColor = FColor(0, 255, 0, 255);
