@@ -11,7 +11,8 @@ UVaFogLibrary::UVaFogLibrary(const FObjectInitializer& ObjectInitializer)
 
 bool UVaFogLibrary::IsRHINeedsToSwitchVerticalAxis()
 {
-	return RHINeedsToSwitchVerticalAxis(GMaxRHIShaderPlatform);
+	// RHINeedsToSwitchVerticalAxis does nt exist anymore
+	return false; //RHINeedsToSwitchVerticalAxis(GMaxRHIShaderPlatform);
 }
 
 FColor UVaFogLibrary::GetDebugColorForHeightLevel(EVaFogHeightLevel HeightLevel)

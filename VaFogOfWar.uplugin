@@ -2,7 +2,7 @@
 	"FileVersion": 3,
 	"Version": 1,
 	"VersionName": "1.0",
-	"EngineVersion" : "5.0",
+	"EngineVersion" : "5.1",
 	"FriendlyName": "VaFogOfWar",
 	"Description": "VaFogOfWar",
 	"Category": "Rendering",

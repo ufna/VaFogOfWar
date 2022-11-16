@@ -126,7 +126,7 @@ void AVaFogTerrainLayer::LoadTerrainBufferFromTexture()
 	// Check initial state and load it if necessary
 	if (InitialTerrainTexture)
 	{
-		if (InitialTerrainTexture->PlatformData && InitialTerrainTexture->GetPixelFormat() != EPixelFormat::PF_Unknown)
+		if (InitialTerrainTexture->GetPlatformData() && InitialTerrainTexture->GetPixelFormat() != EPixelFormat::PF_Unknown)
 		{
 			int32 SizeX = InitialTerrainTexture->GetSizeX();
 			int32 SizeY = InitialTerrainTexture->GetSizeY();
@@ -138,7 +138,7 @@ void AVaFogTerrainLayer::LoadTerrainBufferFromTexture()
 			{
 				if (BytesPerPixel == sizeof(uint8))
 				{
-					uint8* TextureData = static_cast<uint8*>(InitialTerrainTexture->PlatformData->Mips[0].BulkData.Lock(LOCK_READ_ONLY));
+					uint8* TextureData = static_cast<uint8*>(InitialTerrainTexture->GetPlatformData()->Mips[0].BulkData.Lock(LOCK_READ_ONLY));
 
 					if (TextureData)
 					{
@@ -149,7 +149,7 @@ void AVaFogTerrainLayer::LoadTerrainBufferFromTexture()
 						UE_LOG(LogVaFog, Error, TEXT("[%s] Layer [%s] Can't lock InitialTerrainTexture to read its pixels: %s"), *VA_FUNC_LINE, *GetName(), *InitialTerrainTexture->GetName());
 					}
 
-					InitialTerrainTexture->PlatformData->Mips[0].BulkData.Unlock();
+					InitialTerrainTexture->GetPlatformData()->Mips[0].BulkData.Unlock();
 				}
 				else
 				{
