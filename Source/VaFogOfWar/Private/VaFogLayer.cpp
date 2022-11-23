@@ -821,7 +821,7 @@ void AVaFogLayer::UpdateTextureFromBuffer(UTexture2D* DestinationTexture, uint8*
 	FMemory::Memcpy(Buffer, SrcBuffer, SrcBufferLength);
 
 	FTextureData* TextureData = new FTextureData();
-	TextureData->Texture2DResource = (FTexture2DResource*)DestinationTexture->Resource;
+	TextureData->Texture2DResource = static_cast<FTexture2DResource*>(DestinationTexture->GetResource());
 	TextureData->SrcPitch = UpdateTextureRegion.Width;
 	TextureData->SrcData = Buffer;
 	TextureData->Region = &UpdateTextureRegion;

@@ -149,7 +149,6 @@ int32 AVaFogBoundsVolume::ScaleDistanceToLayer(const int32 Distance) const
 
 void AVaFogBoundsVolume::DrawDebugGrid()
 {
-	FIntPoint LayerPoint;
 	FVector LayerPosition = FVector::ZeroVector;
 	int32 LocationZ = GetActorLocation().Z;
 
