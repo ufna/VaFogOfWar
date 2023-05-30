@@ -8,6 +8,7 @@
 
 #include "Developer/Settings/Public/ISettingsModule.h"
 #include "Engine/World.h"
+#include "UObject/Package.h"
 
 #define LOCTEXT_NAMESPACE "FVaFogOfWarModule"
 

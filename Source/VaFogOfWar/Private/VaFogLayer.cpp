@@ -14,6 +14,7 @@
 
 #include "Components/BillboardComponent.h"
 #include "DrawDebugHelpers.h"
+#include "RenderingThread.h"
 #include "Engine/Texture2D.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Materials/Material.h"
