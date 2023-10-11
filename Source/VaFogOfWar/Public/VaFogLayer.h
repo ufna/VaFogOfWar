@@ -8,6 +8,7 @@
 
 #include "GameFramework/Actor.h"
 #include "RHI.h"
+#include "RHITypes.h"
 
 #include "VaFogLayer.generated.h"
 
